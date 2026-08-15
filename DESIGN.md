@@ -293,15 +293,39 @@ concepts are logged, so it can never disagree with the counters:
 
 | State | Condition | Treatment |
 |---|---|---|
-| `s-new` | 0 logged | Cyan pin, cyan blips, grid-coloured plate |
-| `s-part` | some logged | Amber pin, amber plate rule, logged blips turn green |
+| `s-new` | 0 logged | Red pin, red markers, red plate rule |
+| `s-part` | some logged | Amber pin, amber plate rule, logged markers turn green |
 | `s-done` | all logged | Green pin, green plate rule, flag planted on the territory |
 
-Plus one non-state: a pulsing cyan ring marks the region you are furthest into — the *you are
-here*, computed by `progress.resumeDay()`. It is a hint, not a gate.
+**Red means outstanding here, and that is the one extension to §2's vocabulary.** It is
+consistent with "urgent" rather than a new meaning — an unexplored sighting is work still
+owed. It also makes the map's red markers agree with the red radar blips and the
+`N SIGHTINGS UNEXPLORED` counter, which all count the same thing.
+
+**Cyan is now chrome only** — frames, routes, labels, the *you are here* ring. It was doing
+double duty as both interface colour and the "unexplored" state, which is exactly the
+ambiguity §2 exists to prevent. Nothing on the map uses cyan to mean a state.
+
+Plus one non-state: a pulsing cyan ring marks the region you are furthest into, computed by
+`progress.resumeDay()`. It is a hint, not a gate.
+
+### Shape carries kind, colour carries state
+
+An ordinary sighting is an octagon; a region's final section — its capstone — is a star. The
+star says *this one matters* at every progress level, so the two axes never collide. Add new
+marker kinds as shapes, never as colours.
 
 The `.pin` `:nth-child` colour cycling in the day files is now the only place colour means
 variety rather than progress. It stays confined there; nothing on the map uses it.
+
+### Where this leaves colour-blind readers
+
+Red and green are the hardest pair to tell apart, and the map now leans on them. Nothing is
+colour-only at the region level: every territory carries its `6 / 14 SIGHTINGS` count in
+text, the region chips repeat it, the counter totals it, and a cleared region plants a flag —
+a shape, not a hue. The individual concept markers *are* colour-only, and they are deliberately
+the secondary readout rather than the primary one. If that ever stops being good enough, give
+logged markers a distinct shape rather than a lighter green.
 
 ### Regional layout
 

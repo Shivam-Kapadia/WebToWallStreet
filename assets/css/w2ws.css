@@ -258,9 +258,13 @@ img,svg{max-width:100%}
   width:12px;height:12px;flex:none;display:block;
   clip-path:polygon(22% 0,78% 0,100% 22%,100% 78%,78% 100%,22% 100%,0 78%,0 22%);
 }
-.lg.new i{background:var(--cyan)}
+.lg.new i{background:var(--red)}
 .lg.part i{background:var(--amber)}
 .lg.done i{background:var(--green)}
+.lg.star i{
+  background:var(--dim);
+  clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+}
 
 /* the scrollable field */
 .field{
@@ -318,7 +322,7 @@ img,svg{max-width:100%}
 .rchip:hover,.rchip:focus-visible{background:#153B7C;border-color:var(--cyan);outline:none;transform:translate(-2px,-2px)}
 .rchip.s-part{border-left:5px solid var(--amber)}
 .rchip.s-done{border-left:5px solid var(--green)}
-.rchip.s-new{border-left:5px solid var(--cyan)}
+.rchip.s-new{border-left:5px solid var(--red)}
 
 /* map controls under the stage */
 .maptools{
@@ -345,17 +349,23 @@ img,svg{max-width:100%}
 .mapsvg .terr:hover .halo,.mapsvg .terr:focus-visible .halo{opacity:.9}
 .mapsvg .terr:focus-visible .halo{stroke:#fff;stroke-width:3;opacity:1}
 
-.mapsvg .pin-body{fill:var(--cyan);stroke:#04122C;stroke-width:3}
+/* Colour is progress, never variety (DESIGN.md §2).
+   red = outstanding · amber = in progress · green = cleared.
+   Cyan is reserved for chrome — frames, routes, labels — so it never
+   competes with a state colour. */
+.mapsvg .pin-body{fill:var(--red);stroke:#04122C;stroke-width:3}
 .mapsvg .pin-num{
-  font-family:var(--display);font-size:19px;fill:#06122E;
+  font-family:var(--display);font-size:19px;fill:#FFF3F1;
   text-anchor:middle;dominant-baseline:central;
 }
 .mapsvg .s-part .pin-body{fill:var(--amber)}
+.mapsvg .s-part .pin-num{fill:#2A1B04}
 .mapsvg .s-done .pin-body{fill:var(--green)}
+.mapsvg .s-done .pin-num{fill:#06210A}
 
 .mapsvg .pin-web line,.mapsvg .pin-web polygon{stroke:#06122E;fill:none;stroke-width:1.2;opacity:.55}
 
-.mapsvg .plate-bg{fill:#0B2049;stroke:var(--grid);stroke-width:2.5}
+.mapsvg .plate-bg{fill:#0B2049;stroke:var(--red);stroke-width:2.5}
 .mapsvg .s-done .plate-bg{stroke:var(--green)}
 .mapsvg .s-part .plate-bg{stroke:var(--amber)}
 .mapsvg .terr:hover .plate-bg,.mapsvg .terr:focus-visible .plate-bg{fill:#153B7C;stroke:var(--cyan)}
@@ -366,13 +376,19 @@ img,svg{max-width:100%}
   font-family:var(--hud);font-size:22px;fill:var(--dim);text-anchor:middle;letter-spacing:1.5px;
 }
 .mapsvg .plate-cnt{
-  font-family:var(--hud);font-size:20px;fill:var(--cyan);text-anchor:middle;letter-spacing:1px;
+  font-family:var(--hud);font-size:20px;fill:var(--red);text-anchor:middle;letter-spacing:1px;
 }
 .mapsvg .s-done .plate-cnt{fill:var(--green)}
 .mapsvg .s-part .plate-cnt{fill:var(--amber)}
 
-.mapsvg .blip-c{fill:var(--cyan);opacity:.55}
-.mapsvg .blip-c.on{fill:var(--green);opacity:1}
+/* Concept markers. Shape carries KIND, colour carries STATE:
+   an octagon is an ordinary sighting, a star is the region's capstone.
+   The dark stroke is what makes them read against the land, the way
+   the reference's markers do. */
+.mapsvg .blip-c{fill:var(--red);stroke:#04122C;stroke-width:2}
+.mapsvg .blip-c.on{fill:var(--green)}
+.mapsvg .blip-star{fill:var(--red);stroke:#04122C;stroke-width:2}
+.mapsvg .blip-star.on{fill:var(--green)}
 .mapsvg .blip-ring{fill:none;stroke:var(--grid);stroke-width:1.5;opacity:.5}
 
 .mapsvg .flag polygon{fill:var(--green)}

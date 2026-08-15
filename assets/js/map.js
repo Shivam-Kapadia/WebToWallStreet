@@ -48,6 +48,18 @@
                     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  /* five-pointed star — marks a region's capstone section. Shape says
+     "this one matters"; colour still says how far along it is. */
+  function star(cx, cy, r){
+    var pts = [], i, a, rr;
+    for (i = 0; i < 10; i++){
+      a  = -Math.PI / 2 + i * Math.PI / 5;
+      rr = (i % 2 === 0) ? r : r * 0.44;
+      pts.push((cx + Math.cos(a) * rr).toFixed(1) + ',' + (cy + Math.sin(a) * rr).toFixed(1));
+    }
+    return pts.join(' ');
+  }
+
   /* octagon points, the shape used for every marker on this site */
   function oct(cx, cy, r){
     var k = r * 0.42;
@@ -212,9 +224,14 @@
         by = p.y + Math.sin(th) * RY * rad;
       }
 
-      blips += '<polygon class="blip-c' + (P.has(day.id, day.concepts[i][0]) ? ' on' : '') +
-               '" data-blip="' + day.id + '-' + day.concepts[i][0] + '" points="' +
-               oct(bx, by, 7) + '"/>';
+      /* the last section of a region is its capstone — draw it as a star */
+      var isLast = (i === n - 1);
+      var on     = P.has(day.id, day.concepts[i][0]) ? ' on' : '';
+      var tag    = ' data-blip="' + day.id + '-' + day.concepts[i][0] + '"';
+
+      blips += isLast
+        ? '<polygon class="blip-star' + on + '"' + tag + ' points="' + star(bx, by, 12) + '"/>'
+        : '<polygon class="blip-c'    + on + '"' + tag + ' points="' + oct(bx, by, 8.5) + '"/>';
     }
     blips += '</g>';
 
