@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050E24">
+<title>Day 2 — Frameworks &amp; Case Math | WebToWallStreet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#050E24;
+  --deep:#0A1B3F;
+  --panel:#0F2551;
+  --panel2:#14346B;
+  --grid:#1B3F7A;
+  --cyan:#5CE1E6;
+  --blue:#3D7BF0;
+  --red:#E8412F;
+  --green:#4FBF52;
+  --amber:#F2C46A;
+  --ink:#D8E6FF;
+  --dim:#7D9BD1;
+  --display:'Press Start 2P',monospace;
+  --hud:'VT323',monospace;
+  --body:'Space Grotesk',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--void);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- grid map atmosphere ---------- */
+.map-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(rgba(27,63,122,.55) 1px,transparent 1px) 0 0/44px 44px,
+    linear-gradient(90deg,rgba(27,63,122,.55) 1px,transparent 1px) 0 0/44px 44px,
+    linear-gradient(rgba(27,63,122,.28) 1px,transparent 1px) 0 0/11px 11px,
+    linear-gradient(90deg,rgba(27,63,122,.28) 1px,transparent 1px) 0 0/11px 11px,
+    radial-gradient(ellipse at 20% 0%,#0E2A5C 0%,#050E24 60%);
+  opacity:.9;
+}
+.map-bg::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);
+  mix-blend-mode:multiply;
+}
+
+/* ---------- pixel frames ---------- */
+.px{
+  border:3px solid var(--cyan);
+  background:var(--panel);
+  box-shadow:
+    0 0 0 3px var(--void),
+    0 0 0 6px var(--deep),
+    8px 8px 0 0 rgba(0,0,0,.55);
+}
+.px-flat{
+  border:2px solid var(--grid);
+  background:var(--panel);
+  box-shadow:5px 5px 0 0 rgba(0,0,0,.45);
+}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg,#0A1B3F 0%,#071433 100%);
+  border-bottom:3px solid var(--cyan);
+  box-shadow:0 3px 0 0 var(--deep),0 6px 14px rgba(0,0,0,.5);
+}
+.topbar-in{
+  max-width:1200px;margin:0 auto;padding:10px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.emblem{flex:0 0 auto;width:30px;height:30px;display:block}
+.tb-name{
+  font-family:var(--display);font-size:11px;color:var(--cyan);
+  letter-spacing:.5px;line-height:1.5;
+}
+.tb-badge{
+  font-family:var(--display);font-size:8px;color:var(--void);
+  background:var(--amber);padding:5px 8px;letter-spacing:.5px;
+}
+.tb-tick{
+  margin-left:auto;font-family:var(--hud);font-size:18px;color:var(--dim);
+  letter-spacing:1px;white-space:nowrap;
+}
+.tb-tick b{color:var(--green);font-weight:400}
+
+/* ---------- layout ---------- */
+.wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px}
+.mod{margin:70px 0;scroll-margin-top:84px}
+section[id]{scroll-margin-top:84px}
+
+/* ---------- hero ---------- */
+.hero{padding:52px 0 10px}
+.plate{position:relative;padding:34px 32px}
+.plate .brk{position:absolute;width:16px;height:16px;border:3px solid var(--amber)}
+.plate .b1{top:-3px;left:-3px;border-right:0;border-bottom:0}
+.plate .b2{top:-3px;right:-3px;border-left:0;border-bottom:0}
+.plate .b3{bottom:-3px;left:-3px;border-right:0;border-top:0}
+.plate .b4{bottom:-3px;right:-3px;border-left:0;border-top:0}
+.eyebrow{
+  font-family:var(--hud);font-size:20px;color:var(--cyan);
+  letter-spacing:3px;text-transform:uppercase;margin:0 0 14px;
+}
+h1{
+  font-family:var(--display);font-size:26px;line-height:1.62;
+  color:var(--ink);margin:0 0 18px;letter-spacing:.5px;
+}
+h1 span{color:var(--amber)}
+.lede{max-width:760px;margin:0;color:var(--ink)}
+.lede + .lede{margin-top:14px}
+.meta{
+  display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;
+}
+.chip{
+  font-family:var(--hud);font-size:17px;letter-spacing:1px;
+  border:2px solid var(--grid);background:var(--deep);
+  padding:3px 10px;color:var(--dim);text-transform:uppercase;
+}
+.chip b{color:var(--cyan);font-weight:400}
+
+/* ---------- sighting map ---------- */
+.tracker{position:relative;padding:26px 24px 30px;margin-top:34px;overflow:hidden}
+.tr-head{
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  margin:0 0 6px;
+}
+.tr-head h2{
+  font-family:var(--display);font-size:13px;color:var(--cyan);
+  margin:0;letter-spacing:.5px;
+}
+.tr-head .sub{font-family:var(--hud);font-size:18px;color:var(--dim);letter-spacing:1px}
+.markers{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  gap:14px;margin-top:20px;position:relative;z-index:2;
+}
+.marker{
+  display:flex;gap:12px;align-items:flex-start;
+  text-decoration:none;color:inherit;
+  border:2px solid var(--grid);background:rgba(10,27,63,.82);
+  padding:12px 13px;transition:transform .12s steps(2),border-color .12s,background .12s;
+}
+.marker:hover{transform:translate(-2px,-2px);border-color:var(--cyan);background:var(--panel2)}
+.marker:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.pin{
+  position:relative;flex:0 0 auto;width:42px;height:42px;
+  display:grid;place-items:center;
+  background:var(--blue);
+  -webkit-clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);
+  clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);
+}
+.markers .marker:nth-child(7n+1) .pin{background:var(--cyan)}
+.markers .marker:nth-child(7n+2) .pin{background:var(--green)}
+.markers .marker:nth-child(7n+3) .pin{background:var(--amber)}
+.markers .marker:nth-child(7n+4) .pin{background:var(--red)}
+.markers .marker:nth-child(7n+5) .pin{background:var(--blue)}
+.markers .marker:nth-child(7n+6) .pin{background:var(--cyan)}
+.markers .marker:nth-child(7n+7) .pin{background:var(--green)}
+.pin svg{width:24px;height:24px;display:block}
+.tag{
+  position:absolute;right:-4px;bottom:-5px;
+  font-family:var(--display);font-size:7px;color:var(--void);
+  background:var(--ink);padding:2px 3px;line-height:1;
+}
+.m-t{font-family:var(--hud);font-size:20px;color:var(--ink);letter-spacing:.6px;line-height:1.25;display:block}
+.m-s{font-family:var(--body);font-size:13px;color:var(--dim);line-height:1.45;margin-top:3px;display:block}
+
+/* radar + furniture */
+.radar{
+  position:absolute;right:18px;top:18px;width:104px;height:104px;
+  opacity:.5;z-index:1;pointer-events:none;
+}
+.sweep{transform-origin:52px 52px;animation:spin 4.4s steps(16) infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.blip{animation:pulse 2.4s ease-in-out infinite}
+.blip:nth-of-type(2){animation-delay:.7s}
+.blip:nth-of-type(3){animation-delay:1.4s}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+.webcorner{position:absolute;left:-2px;bottom:-2px;width:120px;height:120px;opacity:.35;pointer-events:none}
+.agent{position:absolute;right:22px;bottom:14px;text-align:center;opacity:.75;pointer-events:none}
+.agent svg{width:44px;height:44px;display:block;margin:0 auto}
+.agent span{font-family:var(--display);font-size:6px;color:var(--dim);letter-spacing:.5px}
+
+/* ---------- module heads ---------- */
+.mod-head{display:flex;align-items:center;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+.num{
+  font-family:var(--display);font-size:11px;color:var(--void);
+  background:var(--cyan);padding:8px 9px;letter-spacing:.5px;
+}
+.mod-head h2{
+  font-family:var(--display);font-size:15px;color:var(--ink);
+  margin:0;letter-spacing:.5px;line-height:1.55;text-transform:uppercase;
+}
+.tagline{
+  font-family:var(--hud);font-size:19px;color:var(--amber);
+  letter-spacing:1.6px;text-transform:uppercase;margin:0 0 20px;
+}
+h3{
+  font-family:var(--hud);font-size:23px;color:var(--cyan);
+  letter-spacing:1.2px;text-transform:uppercase;
+  margin:34px 0 10px;
+}
+p{margin:0 0 15px}
+strong{color:#fff;font-weight:700}
+em{color:var(--amber);font-style:normal}
+ul,ol{margin:0 0 15px;padding-left:22px}
+li{margin-bottom:7px}
+code{
+  font-family:var(--hud);font-size:18px;color:var(--cyan);
+  background:var(--deep);padding:1px 6px;border:1px solid var(--grid);
+}
+
+/* ---------- formula ---------- */
+.formula{
+  font-family:var(--display);font-size:12px;line-height:2.1;
+  color:var(--amber);text-align:center;
+  border:2px dashed var(--blue);background:rgba(10,27,63,.7);
+  padding:20px 16px;margin:22px 0;
+  overflow-x:auto;
+}
+.formula small{
+  display:block;font-family:var(--hud);font-size:18px;
+  color:var(--dim);letter-spacing:1px;margin-top:10px;
+}
+
+/* ---------- callouts ---------- */
+.callout{
+  border-left:5px solid var(--red);background:rgba(232,65,47,.09);
+  padding:15px 18px;margin:20px 0;
+}
+.callout.good{border-left-color:var(--green);background:rgba(79,191,82,.09)}
+.callout.say{border-left-color:var(--amber);background:rgba(242,196,106,.09)}
+.lab{
+  display:block;font-family:var(--display);font-size:9px;
+  color:var(--red);letter-spacing:.5px;margin-bottom:9px;
+}
+.callout.good .lab{color:var(--green)}
+.callout.say .lab{color:var(--amber)}
+.callout p:last-child{margin-bottom:0}
+
+/* ---------- split cards ---------- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0}
+.card{border:2px solid var(--grid);background:var(--panel);padding:16px 18px}
+.card.red{border-color:var(--red)}
+.card.green{border-color:var(--green)}
+.card h4{
+  font-family:var(--display);font-size:9px;margin:0 0 12px;letter-spacing:.5px;
+  color:var(--cyan);line-height:1.7;
+}
+.card.red h4{color:var(--red)}
+.card.green h4{color:var(--green)}
+.card p{font-size:15px;margin-bottom:10px}
+.card p:last-child{margin-bottom:0}
+.card ul{font-size:15px;margin-bottom:0}
+
+/* ---------- issue tree ---------- */
+.tree{margin:24px 0;font-family:var(--hud);font-size:19px;letter-spacing:.5px}
+.trow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.tnode{
+  border:2px solid var(--grid);background:var(--panel);
+  padding:7px 13px;color:var(--ink);text-align:center;line-height:1.3;
+}
+.tnode.t0{border-color:var(--cyan);background:var(--panel2);color:var(--cyan)}
+.tnode.t1{border-color:var(--blue)}
+.tnode.t2{border-color:var(--grid);color:var(--dim);font-size:17px}
+.tnode.gr{border-color:var(--green);color:var(--green)}
+.tnode.rd{border-color:var(--red);color:var(--red)}
+.tbranch{
+  height:20px;border-left:2px solid var(--blue);
+  width:0;margin:0 auto 8px;
+}
+
+/* ---------- ascii tree block ---------- */
+.ascii{
+  font-family:var(--hud);font-size:19px;line-height:1.5;
+  color:var(--ink);background:rgba(10,27,63,.78);
+  border:2px solid var(--grid);border-left:5px solid var(--blue);
+  padding:16px 18px;margin:22px 0;
+  white-space:pre;overflow-x:auto;letter-spacing:.4px;
+}
+.ascii .k{color:var(--cyan)}
+.ascii .g{color:var(--green)}
+.ascii .r{color:var(--red)}
+.ascii .a{color:var(--amber)}
+.ascii .d{color:var(--dim)}
+
+/* ---------- sense check ---------- */
+.sense{
+  display:flex;gap:14px;align-items:flex-start;
+  border-left:4px solid var(--cyan);background:rgba(92,225,230,.07);
+  padding:15px 18px;margin:24px 0;
+}
+.sense svg{flex:0 0 auto;width:26px;height:26px;margin-top:3px}
+.sense b{
+  display:block;font-family:var(--display);font-size:9px;
+  color:var(--cyan);margin-bottom:8px;letter-spacing:.5px;
+}
+.sense p{margin:0;font-size:16px}
+
+/* ---------- checkpoint ---------- */
+.checkpoint{
+  border:2px dashed var(--green);background:rgba(79,191,82,.06);
+  padding:18px 20px;margin:30px 0 12px;
+}
+.checkpoint b{
+  display:block;font-family:var(--display);font-size:10px;
+  color:var(--green);margin-bottom:12px;letter-spacing:.5px;
+}
+.checkpoint ol{margin:0;padding-left:20px;font-size:16px}
+.checkpoint li{margin-bottom:8px;color:var(--ink)}
+
+/* ---------- tables ---------- */
+.tscroll{
+  overflow-x:auto;margin:22px 0;
+  border:2px solid var(--grid);
+  scrollbar-color:var(--blue) var(--deep);
+}
+.tscroll::-webkit-scrollbar{height:10px}
+.tscroll::-webkit-scrollbar-track{background:var(--deep)}
+.tscroll::-webkit-scrollbar-thumb{background:var(--blue)}
+table{border-collapse:collapse;width:100%;min-width:520px;background:var(--panel)}
+th{
+  font-family:var(--display);font-size:8px;letter-spacing:.5px;
+  background:var(--panel2);color:var(--cyan);
+  padding:12px 12px;text-align:left;line-height:1.8;
+  border-bottom:2px solid var(--grid);
+}
+td{
+  font-family:var(--hud);font-size:18px;letter-spacing:.4px;
+  padding:9px 12px;border-bottom:1px solid var(--grid);
+  color:var(--ink);vertical-align:top;line-height:1.45;
+}
+tr:last-child td{border-bottom:0}
+td.g{color:var(--green)}
+td.r{color:var(--red)}
+td.a{color:var(--amber)}
+td.c{color:var(--cyan)}
+
+/* ---------- console ---------- */
+.console{
+  border:3px solid var(--amber);background:linear-gradient(180deg,#0B1E45 0%,#081736 100%);
+  box-shadow:0 0 0 3px var(--void),8px 8px 0 0 rgba(0,0,0,.5);
+  padding:22px 22px 24px;margin:28px 0;
+}
+.console h4{
+  font-family:var(--display);font-size:11px;color:var(--amber);
+  margin:0 0 4px;letter-spacing:.5px;line-height:1.7;
+}
+.console .hint{font-family:var(--hud);font-size:18px;color:var(--dim);letter-spacing:1px;margin:0 0 18px}
+.ctrls{display:grid;grid-template-columns:1fr 1fr;gap:14px 26px}
+.ctrl{display:flex;align-items:center;gap:12px}
+.ctrl label{
+  font-family:var(--hud);font-size:18px;color:var(--dim);
+  letter-spacing:.8px;flex:0 0 156px;text-transform:uppercase;
+}
+.ctrl input[type=range]{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:8px;background:var(--deep);border:2px solid var(--grid);outline:none;
+}
+.ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:22px;background:var(--cyan);border:2px solid var(--void);cursor:pointer;
+}
+.ctrl input[type=range]::-moz-range-thumb{
+  width:16px;height:22px;background:var(--cyan);border:2px solid var(--void);cursor:pointer;border-radius:0;
+}
+.ctrl input[type=range]:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.ctrl .val{
+  font-family:var(--hud);font-size:19px;color:var(--cyan);
+  flex:0 0 96px;text-align:right;letter-spacing:.5px;
+}
+.readout{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px;
+}
+.rd{border:2px solid var(--grid);background:rgba(5,14,36,.7);padding:11px 12px}
+.rd span{
+  display:block;font-family:var(--hud);font-size:16px;color:var(--dim);
+  letter-spacing:1px;text-transform:uppercase;line-height:1.3;
+}
+.rd b{
+  display:block;font-family:var(--display);font-size:13px;color:var(--ink);
+  margin-top:8px;letter-spacing:.5px;
+}
+.rd b.g{color:var(--green)}
+.rd b.r{color:var(--red)}
+.rd b.a{color:var(--amber)}
+.verdict{
+  font-family:var(--hud);font-size:20px;letter-spacing:1px;
+  margin-top:18px;padding:12px 14px;border-left:5px solid var(--cyan);
+  background:rgba(92,225,230,.08);color:var(--ink);
+}
+.verdict.g{border-left-color:var(--green);background:rgba(79,191,82,.09)}
+.verdict.r{border-left-color:var(--red);background:rgba(232,65,47,.09)}
+
+/* ---------- divider + back link ---------- */
+.strandline{display:block;width:100%;height:26px;margin:56px 0;opacity:.55}
+.back{
+  display:inline-block;font-family:var(--hud);font-size:18px;letter-spacing:1.4px;
+  color:var(--dim);text-decoration:none;border:2px solid var(--grid);
+  padding:5px 12px;text-transform:uppercase;margin-top:8px;
+}
+.back:hover{color:var(--cyan);border-color:var(--cyan)}
+.back:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+
+/* ---------- footer ---------- */
+footer{
+  border-top:3px solid var(--grid);margin-top:20px;padding:30px 0 60px;
+  font-family:var(--hud);font-size:18px;color:var(--dim);letter-spacing:1px;
+}
+footer b{color:var(--cyan);font-weight:400}
+
+/* ---------- responsive: 900 ---------- */
+@media (max-width:900px){
+  .wrap{padding:0 16px}
+  .topbar-in{padding:9px 16px}
+  h1{font-size:21px;line-height:1.66}
+  .plate{padding:28px 22px}
+  .split{grid-template-columns:1fr}
+  .readout{grid-template-columns:repeat(2,1fr)}
+  .ctrls{grid-template-columns:1fr}
+  .radar{width:86px;height:86px;right:14px;top:14px}
+  .agent{display:none}
+  .mod{margin:58px 0}
+}
+
+/* ---------- responsive: 640 ---------- */
+@media (max-width:640px){
+  body{font-size:16px;line-height:1.68}
+  .wrap{padding:0 12px}
+  .mod{margin:46px 0;scroll-margin-top:64px}
+  section[id]{scroll-margin-top:64px}
+  h1{font-size:16px;line-height:1.75}
+  .eyebrow{font-size:18px;letter-spacing:2px}
+  .mod-head h2{font-size:12px}
+  .num{font-size:10px;padding:7px 8px}
+  .tagline{font-size:17px;letter-spacing:1.2px}
+  h3{font-size:21px;margin-top:28px}
+  .tr-head h2{font-size:11px}
+  .markers{grid-template-columns:1fr}
+  .marker{padding:14px 13px}
+  .marker:hover{transform:none;border-color:var(--grid);background:rgba(10,27,63,.82)}
+  .marker:active{border-color:var(--cyan);background:var(--panel2)}
+  .formula{font-family:var(--hud);font-size:22px;line-height:1.7;letter-spacing:.5px;white-space:normal}
+  .formula small{font-size:17px}
+  .px{box-shadow:0 0 0 2px var(--void),0 0 0 4px var(--deep),5px 5px 0 0 rgba(0,0,0,.55)}
+  .console{box-shadow:0 0 0 2px var(--void),5px 5px 0 0 rgba(0,0,0,.5);padding:18px 16px 20px}
+  .ctrl{flex-wrap:wrap;gap:6px 10px}
+  .ctrl label{flex:1 1 100%;font-size:17px}
+  .ctrl input[type=range]{flex:1 1 auto;height:12px;padding:11px 0;background-clip:content-box}
+  .ctrl .val{flex:0 0 84px}
+  .rd b{font-size:11px}
+  .checkpoint ol{font-size:15px}
+  .radar{width:70px;height:70px}
+  .webcorner{width:88px;height:88px}
+  .tb-tick{display:none}
+  .ascii{font-size:17px}
+}
+
+/* ---------- responsive: 380 ---------- */
+@media (max-width:380px){
+  .readout{grid-template-columns:1fr}
+  h1{font-size:14px}
+  .tb-name{font-size:9px}
+  .tb-badge{font-size:7px}
+  .plate{padding:22px 16px}
+  .tracker{padding:20px 14px 24px}
+  .formula{font-size:20px;padding:16px 12px}
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="map-bg" aria-hidden="true"></div>
+
+<!-- sprite definitions: original pixel geometry, drawn as rect grids -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="spr" viewBox="0 0 24 24">
+    <g fill="#050E24">
+      <rect x="10" y="7" width="4" height="3"/>
+      <rect x="9" y="10" width="6" height="6"/>
+      <rect x="10" y="16" width="4" height="2"/>
+      <rect x="7" y="8" width="2" height="2"/><rect x="5" y="6" width="2" height="2"/><rect x="4" y="4" width="2" height="2"/>
+      <rect x="15" y="8" width="2" height="2"/><rect x="17" y="6" width="2" height="2"/><rect x="18" y="4" width="2" height="2"/>
+      <rect x="7" y="11" width="2" height="2"/><rect x="5" y="11" width="2" height="2"/><rect x="3" y="10" width="2" height="2"/>
+      <rect x="15" y="11" width="2" height="2"/><rect x="17" y="11" width="2" height="2"/><rect x="19" y="10" width="2" height="2"/>
+      <rect x="7" y="14" width="2" height="2"/><rect x="5" y="15" width="2" height="2"/><rect x="3" y="17" width="2" height="2"/>
+      <rect x="15" y="14" width="2" height="2"/><rect x="17" y="15" width="2" height="2"/><rect x="19" y="17" width="2" height="2"/>
+    </g>
+  </symbol>
+</svg>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <svg class="emblem" viewBox="0 0 24 24" aria-hidden="true">
+      <polygon points="7,1 17,1 23,7 23,17 17,23 7,23 1,17 1,7" fill="#0F2551" stroke="#5CE1E6" stroke-width="2"/>
+      <use href="#spr" x="0" y="0" width="24" height="24" fill="#5CE1E6"/>
+    </svg>
+    <div>
+      <div class="tb-name">WEBTOWALLSTREET</div>
+    </div>
+    <span class="tb-badge">DAY 02</span>
+    <div class="tb-tick">REGION: <b>FRAMEWORKS</b> &middot; 12 SIGHTINGS LOGGED</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="px plate">
+      <span class="brk b1"></span><span class="brk b2"></span><span class="brk b3"></span><span class="brk b4"></span>
+      <p class="eyebrow">Region 02 &middot; Frameworks &amp; Case Math</p>
+      <h1>Day 1 taught you to <span>find the problem</span>.<br>Day 2 teaches you to <span>make the call</span>.</h1>
+      <p class="lede">A profit case says: something broke, go find it. Every other case says something different. It says: <strong>should the client do this thing, yes or no?</strong></p>
+      <p class="lede">Entering a new country. Launching a product. Setting a price. Growing faster. Buying a company. Cutting costs. Six names. One shape underneath. Learn the shape and six case types turn into one.</p>
+      <div class="meta">
+        <span class="chip">Run time &mdash; 2 hours</span>
+        <span class="chip">12 sections</span>
+        <span class="chip">2 live dials</span>
+        <span class="chip">4 practice cases</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SIGHTING MAP ================= -->
+  <div class="px tracker" id="map">
+    <svg class="radar" viewBox="0 0 104 104" aria-hidden="true">
+      <circle cx="52" cy="52" r="49" fill="none" stroke="#1B3F7A" stroke-width="2"/>
+      <circle cx="52" cy="52" r="33" fill="none" stroke="#1B3F7A" stroke-width="1"/>
+      <circle cx="52" cy="52" r="17" fill="none" stroke="#1B3F7A" stroke-width="1"/>
+      <path d="M52 3 L52 101 M3 52 L101 52 M17 17 L87 87 M87 17 L17 87" stroke="#1B3F7A" stroke-width="1"/>
+      <g class="sweep"><path d="M52 52 L52 3 A49 49 0 0 1 87 17 Z" fill="#5CE1E6" opacity=".22"/></g>
+      <rect class="blip" x="66" y="30" width="4" height="4" fill="#F2C46A"/>
+      <rect class="blip" x="30" y="66" width="4" height="4" fill="#4FBF52"/>
+      <rect class="blip" x="70" y="70" width="4" height="4" fill="#E8412F"/>
+    </svg>
+
+    <svg class="webcorner" viewBox="0 0 120 120" aria-hidden="true">
+      <g fill="none" stroke="#3D7BF0" stroke-width="1.5">
+        <path d="M0 120 L120 0"/><path d="M0 120 L86 0"/><path d="M0 120 L120 34"/>
+        <path d="M0 90 Q34 78 44 44"/><path d="M0 64 Q56 52 72 20"/><path d="M0 38 Q78 26 100 6"/>
+      </g>
+    </svg>
+
+    <div class="tr-head">
+      <h2>SIGHTING MAP</h2>
+      <span class="sub">// 12 concepts in this region &mdash; jump anywhere</span>
+    </div>
+
+    <nav class="markers" aria-label="Day 2 concept index">
+      <a class="marker" href="#m00"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">00</span></span><span><span class="m-t">DAY 1 IN ONE PAGE</span><span class="m-s">Everything from yesterday. Read it before you add anything new.</span></span></a>
+      <a class="marker" href="#m01"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">01</span></span><span><span class="m-t">THE ONE SHAPE</span><span class="m-s">Six case types, three questions. This is the whole idea.</span></span></a>
+      <a class="marker" href="#m02"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">02</span></span><span><span class="m-t">WHICH ONE DO I USE?</span><span class="m-s">How to hear the prompt and know which framework it wants.</span></span></a>
+      <a class="marker" href="#m03"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">03</span></span><span><span class="m-t">ENTERING A NEW MARKET</span><span class="m-s">Get to a number. Then check if the plan can actually run.</span></span></a>
+      <a class="marker" href="#m04"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">04</span></span><span><span class="m-t">LAUNCHING A PRODUCT</span><span class="m-s">Plus the question nobody asks: are we stealing from ourselves?</span></span></a>
+      <a class="marker" href="#m05"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">05</span></span><span><span class="m-t">SETTING A PRICE</span><span class="m-s">Three walls make a box. Your price lives inside it.</span></span></a>
+      <a class="marker" href="#m06"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">06</span></span><span><span class="m-t">GROWING FASTER</span><span class="m-s">Split revenue into three parts. Attack each one.</span></span></a>
+      <a class="marker" href="#m07"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">07</span></span><span><span class="m-t">BUYING A COMPANY</span><span class="m-s">What it is worth, what it costs, and what could go wrong.</span></span></a>
+      <a class="marker" href="#m08"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">08</span></span><span><span class="m-t">CUTTING COSTS</span><span class="m-s">Cut where the money is. Not where cutting is easy.</span></span></a>
+      <a class="marker" href="#m09"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">09</span></span><span><span class="m-t">DOING THE MATHS</span><span class="m-s">Out loud, fast, without slipping a zero.</span></span></a>
+      <a class="marker" href="#m10"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">10</span></span><span><span class="m-t">FINISHING THE CASE</span><span class="m-s">The last sixty seconds decide how you are remembered.</span></span></a>
+      <a class="marker" href="#m11"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#spr"/></svg><span class="tag">11</span></span><span><span class="m-t">PRACTICE CASES</span><span class="m-s">Four prompts. Run them timed. Record yourself.</span></span></a>
+    </nav>
+
+    <div class="agent" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <g fill="#5CE1E6">
+          <rect x="9" y="2" width="6" height="5"/><rect x="8" y="7" width="8" height="7"/>
+          <rect x="6" y="8" width="2" height="5"/><rect x="16" y="8" width="2" height="5"/>
+          <rect x="9" y="14" width="2" height="7"/><rect x="13" y="14" width="2" height="7"/>
+        </g>
+        <rect x="10" y="4" width="4" height="2" fill="#050E24"/>
+      </svg>
+      <span>FIELD UNIT</span>
+    </div>
+  </div>
+
+  <!-- ================= 00 DAY 1 IN ONE PAGE ================= -->
+  <section class="mod" id="m00">
+    <div class="mod-head"><span class="num">00</span><h2>Day 1 in one page</h2></div>
+    <p class="tagline">Everything from yesterday, before you add anything new</p>
+
+    <p>Do not skip this bit. Everything in the next eleven sections sits on top of Day 1. If the base is shaky, the whole thing falls apart around minute four of a real case &mdash; and it falls apart in a way the interviewer can see clearly.</p>
+
+    <p>Read it once, slowly. Say the scripted lines out loud.</p>
+
+    <h3>The four stages of any case</h3>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Stage</th><th>Time</th><th>What you do</th></tr></thead>
+        <tbody>
+          <tr><td class="c">Clarify</td><td>2&ndash;3 min</td><td>Say the problem back. Check what the client wants. Ask a few questions to fix the edges of the problem.</td></tr>
+          <tr><td class="c">Structure</td><td>2&ndash;3 min</td><td>Go quiet for a minute. Draw a tree. Then say it out loud, big pieces first.</td></tr>
+          <tr><td class="c">Analyse</td><td>15&ndash;20 min</td><td>Go down one branch at a time. Do the sums. Say what each number means.</td></tr>
+          <tr><td class="c">Conclude</td><td>1&ndash;2 min</td><td>Answer first. Then three reasons. Then one risk. Then one next step.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p><strong>Starting.</strong> &ldquo;Let me check I have this right. The client is X, and they want Y. Before I structure this, can I ask a few questions?&rdquo;</p>
+      <p><strong>Buying yourself quiet time.</strong> &ldquo;Could I take a minute to organise my thoughts?&rdquo;</p>
+      <p><strong>Giving your structure.</strong> &ldquo;I want to split this into three parts. First&hellip; second&hellip; third&hellip; I would like to start with the first one, because I think the biggest driver sits there.&rdquo;</p>
+      <p><strong>Ending.</strong> &ldquo;My recommendation is X. Three reasons&hellip; The main risk is&hellip; and the first thing I would do next is&hellip;&rdquo;</p>
+    </div>
+
+    <h3>MECE</h3>
+
+    <p>It stands for <strong>mutually exclusive, collectively exhaustive</strong>. In plain words: <strong>no overlaps, no gaps</strong>. Each thing goes in exactly one box, and the boxes cover everything.</p>
+
+    <p>Here is the only test you need. Look at your boxes and ask: <em>could a real cause of this problem be something that does not fit in any of my boxes?</em> If yes, you have a gap. Add a box, or add &ldquo;other&rdquo; and say why you are leaving it aside for now.</p>
+
+    <div class="split">
+      <div class="card green">
+        <h4>NO OVERLAPS, NO GAPS</h4>
+        <p>Money in / money out</p>
+        <p>US / outside the US</p>
+        <p>Customers we already have / new customers</p>
+        <p>Under 25 / 25 to 40 / over 40</p>
+      </div>
+      <div class="card red">
+        <h4>BROKEN</h4>
+        <p>Online / mobile / shops &mdash; a phone order is both online and mobile. One sale lands in two boxes.</p>
+        <p>Marketing problems / pricing problems &mdash; pricing is part of marketing, so they overlap. And nothing here covers the factory.</p>
+      </div>
+    </div>
+
+    <h3>Clarifying questions vs guesses</h3>
+
+    <p>This is the mistake you already got caught on once. It is worth going over again, because it is the quickest way to look like a beginner and also the quickest thing to fix.</p>
+
+    <p>A <strong>clarifying question</strong> asks where the edges of the problem are. A <strong>guess</strong> (a hypothesis) says what the cause might be. Both are useful. They just belong in different stages.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Clarifying question &mdash; stage 1</th><th>Guess &mdash; stage 3</th></tr></thead>
+        <tbody>
+          <tr><td class="g">Is this happening in one region or everywhere?</td><td class="r">Could a local rival be cutting prices?</td></tr>
+          <tr><td class="g">Which product are we talking about?</td><td class="r">Is the expensive range pulling the average down?</td></tr>
+          <tr><td class="g">Over what time period did this happen?</td><td class="r">Did this start when the new factory opened?</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Nothing in the right column is wrong. It is just <em>early</em>. Guessing at causes before you have drawn a structure looks like fishing. The exact same sentence, said twenty minutes later, looks smart.</p>
+
+    <h4>The three things to ask about</h4>
+    <ul>
+      <li><strong>What they want</strong> &mdash; what does success look like, what number are they aiming at, by when, and what can they not change?</li>
+      <li><strong>Who they are</strong> &mdash; what do they sell, where, and are they the biggest player or a small one?</li>
+      <li><strong>How wide the problem is</strong> &mdash; the whole company or one part, which product, what time period, and is this just them or the whole industry?</li>
+    </ul>
+
+    <h3>The profit tree</h3>
+
+    <div class="tree">
+      <div class="trow"><div class="tnode t0">PROFIT</div></div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode gr">MONEY IN</div>
+        <div class="tnode rd">MONEY OUT</div>
+      </div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode t2">PRICE<br><small>list price &middot; discounts &middot; which products sell</small></div>
+        <div class="tnode t2">HOW MANY<br><small>size of market &middot; our slice of it</small></div>
+        <div class="tnode t2">FIXED COSTS<br><small>rent &middot; salaries &middot; machines</small></div>
+        <div class="tnode t2">VARIABLE COSTS<br><small>materials &middot; wages per unit &middot; delivery</small></div>
+      </div>
+    </div>
+
+    <div class="callout good">
+      <span class="lab">ASK THIS FIRST, EVERY TIME</span>
+      <p><strong>Is it just our client, or the whole industry?</strong></p>
+      <p>If the whole industry is struggling, look outside: the market shrank, rules changed, raw material got dearer, customers moved to something else. If it is only our client, look inside: we lost share, our mix changed, our costs went up.</p>
+      <p>One question, and you have cut the tree in half before spending any time on it.</p>
+    </div>
+
+    <h4>When the tree gets stuck</h4>
+
+    <p>Sometimes the tree tells you &ldquo;we are selling fewer units&rdquo; and then refuses to tell you more. Stop pushing. Turn the problem sideways and walk through how the product actually reaches a customer:</p>
+
+    <div class="formula">
+      DESIGN &rarr; BUY MATERIALS &rarr; MAKE IT &rarr; STORE &amp; MOVE IT &rarr; SELL IT &rarr; ADVERTISE IT &rarr; SUPPORT IT
+      <small>at each step ask: what could go wrong here?</small>
+    </div>
+
+    <p>The example worth remembering. A sweet company&rsquo;s sales drop. The tree says &ldquo;fewer units&rdquo; and stalls. Walking the steps finds it: the distributor had switched to jars with narrow necks, so shopkeepers could not get their hand in easily and stopped offering them. No amount of thinking about price or rivals would ever have found that.</p>
+
+    <h4>When the problem is &ldquo;fewer customers&rdquo;</h4>
+
+    <p>Find the step where people drop out:</p>
+
+    <div class="formula">
+      HEAR ABOUT US &rarr; CONSIDER US &rarr; BUY &rarr; COME BACK &rarr; TELL FRIENDS
+      <small>the step where the drop happens is your answer</small>
+    </div>
+
+    <h3>The money maths</h3>
+
+    <div class="formula">
+      PROFIT = (PRICE &minus; COST PER UNIT) &times; UNITS SOLD &minus; FIXED COSTS
+      <small>every number you build today lives inside this line</small>
+    </div>
+
+    <ul>
+      <li><strong>Contribution margin</strong> = price minus the cost of making one more unit. It is what each sale puts towards paying the rent.</li>
+      <li><strong>Breakeven volume</strong> = fixed costs divided by contribution margin. How many units before you stop losing money. Learn this one properly &mdash; section 03 is built on it.</li>
+      <li><strong>The three margins.</strong> Gross margin is left after making the product. Operating margin is left after running the business. Net margin is what is left after interest and tax.</li>
+      <li><strong>Profit is not profitability.</strong> Profit is a rupee amount. Profitability is profit as a share of sales. Sales can go up while profitability goes down.</li>
+      <li><strong>Which products sell matters.</strong> Total sales can look flat while profit falls, because people switched from a $70-margin item to a $20-margin item. Always check this before saying nothing changed.</li>
+      <li><strong>Price sensitivity.</strong> If people are very sensitive, cutting the price brings in more total money. If they are not sensitive, raising the price brings in more. Things people must have &mdash; medicine, fuel, salt &mdash; are not sensitive.</li>
+      <li><strong>Bigger can be cheaper.</strong> Fixed costs spread across more units means each unit costs less. Only up to a point &mdash; past a certain size, managing the mess costs more than you save.</li>
+    </ul>
+
+    <h3>Guessing the size of a market</h3>
+
+    <ul>
+      <li><strong>Top down</strong> &mdash; start with a big number and filter it: everyone in the US &rarr; only cities &rarr; only the right age &rarr; only those who can afford it.</li>
+      <li><strong>Bottom up</strong> &mdash; start with one small thing and multiply: sales in one shop &times; number of shops.</li>
+      <li><strong>From the buyer side</strong> &mdash; how much do people want to buy?</li>
+      <li><strong>From the seller side</strong> &mdash; how much can anyone actually make or supply? Use this when supply is the limit: hospital beds, aeroplane seats, cement.</li>
+    </ul>
+
+    <p><strong>Worked example &mdash; dating app users in the US.</strong> Start with 1,400 million people. About 40% live in cities, so 560 million. Of those, roughly 105 million are aged 18 to 30. About 75% have internet, so around 79 million. Say a third of them would use a dating app. That gives about <strong>28 million users</strong>.</p>
+
+    <p>Say each assumption out loud as you make it. Use round numbers you can hold in your head. Ask permission before rounding.</p>
+
+    <h3>The five forces</h3>
+
+    <p>This explains <em>why some industries make good money and others do not</em>. It is not a structure for a whole case.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Force</th><th>In plain words</th></tr></thead>
+        <tbody>
+          <tr><td class="c">Rivals</td><td>How hard are the existing companies fighting each other?</td></tr>
+          <tr><td class="c">New entrants</td><td>How easy is it for someone new to start competing?</td></tr>
+          <tr><td class="c">Substitutes</td><td>Is there a different product that does the same job? A bus instead of a train.</td></tr>
+          <tr><td class="c">Suppliers</td><td>Can the people who sell to us push our costs up?</td></tr>
+          <tr><td class="c">Buyers</td><td>Can our customers push our prices down?</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Words you should not have to stop and think about</h3>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Word</th><th>What it means</th><th>Watch out for</th></tr></thead>
+        <tbody>
+          <tr><td class="c">TAM / SAM / SOM</td><td>Everyone who could ever buy / the part we could serve / what we will actually get</td><td>Treating the biggest number as if it were sales</td></tr>
+          <tr><td class="c">CAC</td><td>What it costs to get one new customer</td><td>It goes up as the cheap channels run out</td></tr>
+          <tr><td class="c">LTV</td><td>All the money one customer brings over the years they stay</td><td class="g">LTV should be about 3 times CAC</td></tr>
+          <tr><td class="c">Churn</td><td>The share of customers who leave each month or year</td><td>High churn kills LTV fast</td></tr>
+          <tr><td class="c">AOV</td><td>Average amount spent per order</td><td>It moves when people switch products, even if orders stay flat</td></tr>
+          <tr><td class="c">GMV</td><td>Total value of everything sold through a platform</td><td class="r">This is not the platform&rsquo;s revenue</td></tr>
+          <tr><td class="c">Take rate</td><td>The cut the platform keeps</td><td class="g">Platform revenue = GMV &times; take rate</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sense">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <g fill="none" stroke="#5CE1E6" stroke-width="1.5">
+          <path d="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19"/>
+          <path d="M12 6 Q17 8 18 12"/><path d="M12 6 Q7 8 6 12"/>
+        </g>
+      </svg>
+      <div>
+        <b>Sense check</b>
+        <p>Day 1 is the rope you tie to the wall. Nothing about it is impressive on its own &mdash; a tree, a few definitions, a formula. But every clever thing you do today hangs off it. Someone with fancy frameworks and shaky arithmetic is swinging on a rope nobody tested.</p>
+      </div>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 00</b>
+      <ol>
+        <li>Name the four stages and how long each gets, without looking.</li>
+        <li>Give one clarifying question and one guess for a case about an airline losing money, and say which stage each belongs in.</li>
+        <li>Draw the profit tree three levels deep on paper.</li>
+        <li>Price $50, cost per unit $30, fixed costs $400,000 Breakeven units, out loud, in under twenty seconds.</li>
+        <li>Say what you would do next if the tree gets stuck at &ldquo;we are selling fewer units&rdquo;.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 01 THE ONE SHAPE ================= -->
+  <section class="mod" id="m01">
+    <div class="mod-head"><span class="num">01</span><h2>The one shape</h2></div>
+    <p class="tagline">Six case types, three questions</p>
+
+    <p>Yesterday you learned the profit tree. That tree solves one kind of case: <strong>something is broken, go and find it</strong>. Profits fell. Why? You narrow down until you hit the cause.</p>
+
+    <p>Now meet the other kind. Entering a new market, launching a product, setting a price, growing faster, buying a company, cutting costs &mdash; in all of these, <strong>nothing is broken</strong>. The client is standing at a fork in the road and wants to know which way to walk.</p>
+
+    <p>Beginners try to memorise six separate frameworks. Do not do that. They are all the same three questions, wearing different clothes.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th></th><th>The question</th><th>What you actually do</th></tr></thead>
+        <tbody>
+          <tr><td class="c">1</td><td><strong>Is it worth it?</strong></td><td>Work out a number. Compare it to what the client said they wanted.</td></tr>
+          <tr><td class="c">2</td><td><strong>Can we actually do it?</strong></td><td>Walk through every step of making and selling the thing. Find the step that breaks.</td></tr>
+          <tr><td class="c">3</td><td><strong>How should we do it?</strong></td><td>Pick the way in. Build it ourselves, buy someone, partner up, or pay someone else to do it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>If you remember nothing else today, remember that table. It means you never have to recall six frameworks. You recall one shape and change what goes inside it.</p>
+
+    <h3>The version that loses marks</h3>
+
+    <p>Most people answer a market entry case by reciting four boxes &mdash; customers, competition, product, company &mdash; then asking twenty scattered questions and hoping something useful turns up.</p>
+
+    <div class="split">
+      <div class="card red">
+        <h4>WHAT IT LOOKS LIKE</h4>
+        <p>&ldquo;Who are the customers? What segments are there? Who are the competitors? What is their share? Are there barriers? What is our cost structure?&rdquo;</p>
+        <p>Every question is fair. But they never add up to anything. After twenty minutes you have twenty facts and still have to wave your hands and say &ldquo;so it looks attractive&rdquo;.</p>
+        <p>The interviewer cannot tell if you are thinking or just remembering a list.</p>
+      </div>
+      <div class="card green">
+        <h4>WHAT TO DO INSTEAD</h4>
+        <p>Say up front: &ldquo;I want to answer two questions. First, does this make money? Second, can we actually pull it off?&rdquo;</p>
+        <p>Then every question you ask has a job. It feeds one of the numbers you are building.</p>
+        <p>By minute eight you have a rupee figure on the table, and everything after that is a real argument about a real number.</p>
+      </div>
+    </div>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;I would like to break this into two questions. First, does entering make money &mdash; I will build that up from the size of the market, the share we could win, and the profit per unit, against what we have to spend up front. Second, if the money works, can we actually run it &mdash; I will walk through making, moving and selling the product. If both look good, I will finish by suggesting how we should enter. Does that sound sensible?&rdquo;</p>
+    </div>
+
+    <div class="sense">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <g fill="none" stroke="#5CE1E6" stroke-width="1.5">
+          <path d="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19"/>
+          <path d="M12 10 Q15 11 15.5 12.5"/><path d="M12 10 Q9 11 8.5 12.5"/>
+        </g>
+      </svg>
+      <div>
+        <b>Sense check</b>
+        <p>Think of a decision case as deciding whether to throw a rope across a gap. <em>Is it worth it</em> asks whether the other side is worth reaching. <em>Can we do it</em> asks whether the rope will hold. <em>How</em> asks where to aim it. Skip the first and you build a lovely bridge to nowhere. Skip the second and you step out into air.</p>
+      </div>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 01</b>
+      <ol>
+        <li>Say the difference between a &ldquo;something is broken&rdquo; case and a &ldquo;should we do this&rdquo; case in one sentence each.</li>
+        <li>Name the three questions in order, without looking.</li>
+        <li>Explain why listing four boxes of questions does not lead anywhere.</li>
+        <li>Say the opening script above out loud in under thirty seconds.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 02 WHICH ONE DO I USE? ================= -->
+  <section class="mod" id="m02">
+    <div class="mod-head"><span class="num">02</span><h2>Which one do I use?</h2></div>
+    <p class="tagline">Hearing the prompt and picking the right tool</p>
+
+    <p>Here is a gap most study guides leave open. You now know several frameworks. But in a real interview nobody tells you which one to use. You get one sentence, and you have about five seconds to work out what kind of case you are in.</p>
+
+    <p>So learn the triggers. Listen for what the client <em>wants</em>, not what industry they are in.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>If the prompt sounds like&hellip;</th><th>It is a&hellip;</th><th>Go to</th></tr></thead>
+        <tbody>
+          <tr><td>&ldquo;Profits have fallen&rdquo; &middot; &ldquo;Margins are down&rdquo; &middot; &ldquo;We are losing money&rdquo;</td><td class="c">Something is broken</td><td class="g">Profit tree &mdash; section 00</td></tr>
+          <tr><td>&ldquo;Should we enter the US?&rdquo; &middot; &ldquo;We want to expand abroad&rdquo;</td><td class="c">New market</td><td class="g">Section 03</td></tr>
+          <tr><td>&ldquo;We have invented something&rdquo; &middot; &ldquo;Should we launch this?&rdquo;</td><td class="c">New product</td><td class="g">Section 04</td></tr>
+          <tr><td>&ldquo;What should we charge?&rdquo; &middot; &ldquo;How do we price this?&rdquo;</td><td class="c">Pricing</td><td class="g">Section 05</td></tr>
+          <tr><td>&ldquo;We want to double in three years&rdquo; &middot; &ldquo;Growth has stalled&rdquo;</td><td class="c">Growth</td><td class="g">Section 06</td></tr>
+          <tr><td>&ldquo;Should we buy this company?&rdquo; &middot; &ldquo;Is this a good investment?&rdquo;</td><td class="c">Buying a company</td><td class="g">Section 07</td></tr>
+          <tr><td>&ldquo;We need to cut costs by 15%&rdquo; &middot; &ldquo;Our factory is too expensive&rdquo;</td><td class="c">Cost cutting</td><td class="g">Section 08</td></tr>
+          <tr><td>&ldquo;How many gas stations are there in Chicago?&rdquo;</td><td class="c">Size guess</td><td class="g">Section 00</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Most real cases are two cases stuck together</h3>
+
+    <p>This trips people up. A market entry case almost always contains a size guess. A growth case often turns into a buying-a-company case halfway through. A pricing question can appear inside anything.</p>
+
+    <p>That is fine. It is not a trick. You just switch tools when the question changes, and you say so out loud so the interviewer can follow you.</p>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;To work out the money side, I first need the size of the market. Let me estimate that, and then come back to the entry decision.&rdquo;</p>
+      <p>&ldquo;We have shown that growing on our own gets us to 20%, not 30%. So the gap has to come from buying someone. Can I switch to looking at that?&rdquo;</p>
+    </div>
+
+    <h3>When you genuinely cannot tell</h3>
+
+    <p>Ask. It costs you nothing and it is what a real consultant would do.</p>
+
+    <div class="callout">
+      <span class="lab">DO NOT GUESS SILENTLY</span>
+      <p>Picking the wrong framework and pushing on for fifteen minutes is much worse than asking one question at the start. Interviewers do not mark you down for asking what the client wants. They mark you down for building a careful answer to a question nobody asked.</p>
+      <p>Safe line: <em>&ldquo;Before I structure this, can I check what the client is trying to decide? Are they choosing whether to do this at all, or have they decided and want to know how?&rdquo;</em></p>
+    </div>
+
+    <h3>The one habit that saves you</h3>
+
+    <p>Whatever the case type, write the client&rsquo;s goal at the top of your page in their own words. <em>Break even by year three. Get to 30% growth. Cut $50 million of cost.</em></p>
+
+    <p>Then every five minutes, glance at it. If what you are doing right now does not move towards that sentence, you have drifted. Come back.</p>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 02</b>
+      <ol>
+        <li>Cover the table. Say what case type each of these is: &ldquo;we want to grow 25% a year&rdquo;, &ldquo;our margins slipped last quarter&rdquo;, &ldquo;a rival is for sale&rdquo;.</li>
+        <li>Say the line you would use to switch from one framework to another mid-case.</li>
+        <li>Write the goal sentence you would put at the top of your page for a client wanting to break even in the US by year three.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 03 ENTERING A NEW MARKET ================= -->
+  <section class="mod" id="m03">
+    <div class="mod-head"><span class="num">03</span><h2>Entering a new market</h2></div>
+    <p class="tagline">Get to a number, then check the plan can run</p>
+
+    <p>The client sells something in one country and wonders about another. Or they are in one city and thinking about ten more. Same case either way.</p>
+
+    <h3>What to ask before you structure</h3>
+
+    <ul>
+      <li>Why this market, and why now?</li>
+      <li>How will they judge success &mdash; total profit, breaking even by a certain year, market share, or just getting a foot in the door?</li>
+      <li>Same product, or changed for the new market?</li>
+      <li>Which parts will they run themselves, and which will they buy from others?</li>
+      <li>Have they tried entering somewhere before? What happened?</li>
+    </ul>
+
+    <h3>The structure</h3>
+
+    <div class="tree">
+      <div class="trow"><div class="tnode t0">SHOULD WE ENTER?</div></div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode gr">DOES IT MAKE MONEY?</div>
+        <div class="tnode t1">CAN WE ACTUALLY RUN IT?</div>
+      </div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode t2">Size of market</div>
+        <div class="tnode t2">Share we can win</div>
+        <div class="tnode t2">Profit per unit<br><small>and what we spend up front</small></div>
+        <div class="tnode t2">Make it &middot; move it &middot; sell it<br><small>have it, build it, or buy it?</small></div>
+      </div>
+    </div>
+
+    <div class="formula">
+      PROFIT = SIZE &times; SHARE &times; (PRICE &minus; COST PER UNIT) &minus; FIXED COSTS
+      <small>every question you ask should feed one of these five things</small>
+    </div>
+
+    <h3>Worked example &mdash; a skincare brand comes to the US</h3>
+
+    <p>An American company sells premium face cream made from natural ingredients. They want to enter the US. Two big American companies already own the market, both using chemical ingredients.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>What we know</th><th>Number</th><th>Where that gets us</th></tr></thead>
+        <tbody>
+          <tr><td>Size of the market</td><td>20 million jars a year</td><td></td></tr>
+          <tr><td>Share we hope for in year 1</td><td>5%</td><td>1 million jars</td></tr>
+          <tr><td>Price per jar</td><td>$150</td><td></td></tr>
+          <tr><td>Cost to make one jar</td><td>$80</td><td class="g">So each jar earns $70</td></tr>
+          <tr><td>Money from all jars</td><td>1,000,000 &times; $70</td><td class="g">$70 million</td></tr>
+          <tr><td>Factory and launch spend</td><td>$200 million</td><td class="r"></td></tr>
+          <tr><td><strong>Year 1 profit</strong></td><td>70 &minus; 200</td><td class="r"><strong>Loss of $130 million</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The move that actually scores</h3>
+
+    <p>A weak answer stops here: &ldquo;it loses money, so do not enter&rdquo;. That is not consulting, that is arithmetic.</p>
+
+    <p>A strong answer flips the sum around. Instead of asking &ldquo;what do we earn at 5% share?&rdquo;, ask &ldquo;<strong>what share would we need to stop losing money?</strong>&rdquo;</p>
+
+    <div class="formula">
+      JARS NEEDED = $200 million &divide; $70 = 2.86 million JARS<br>
+      SHARE NEEDED = 2.86 &divide; 20 = 14.3%
+      <small>the loss was never the real question</small>
+    </div>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;So this is not really a question about a $130 million loss. It is a question about whether a foreign brand can take 14% of the market from two well-established players, and how many years that would take. How long is the client willing to fund losses for?&rdquo;</p>
+    </div>
+
+    <p>You turned a number into a business question. That sentence is the whole difference between someone who can do sums and someone who can advise.</p>
+
+    <h3>How long until we break even?</h3>
+
+    <p>The interviewer will often push here, and many people freeze. It is simple. If we get to 5% share in year 1 and grow a few points each year, count how many years until share passes 14.3%. If the answer is seven years and the client wanted three, the answer is no &mdash; even though the plan works eventually.</p>
+
+    <div class="callout good">
+      <span class="lab">TWO WORDS WORTH KNOWING</span>
+      <p><strong>Payback period.</strong> How many years until the money we get back adds up to the money we put in. Short is good.</p>
+      <p><strong>NPV.</strong> Money in five years is worth less than money today, because you could have earned interest on it. NPV shrinks future money down to today&rsquo;s value and then checks whether the total beats what you spent. Positive means go ahead.</p>
+      <p>You will not be asked to build either one properly in an interview. You will be asked whether you know which one answers the question in front of you.</p>
+    </div>
+
+<div class="console">
+      <h4>ENTRY ECONOMICS &mdash; LIVE</h4>
+      <p class="hint">// drag the dials. watch the breakeven share, not the profit.</p>
+
+      <div class="ctrls">
+        <div class="ctrl">
+          <label for="mSize">Market size (M units)</label>
+          <input type="range" id="mSize" min="2" max="60" step="1" value="20">
+          <span class="val" id="vmSize">20M units</span>
+        </div>
+        <div class="ctrl">
+          <label for="mShare">Target share</label>
+          <input type="range" id="mShare" min="1" max="40" step="1" value="5">
+          <span class="val" id="vmShare">5%</span>
+        </div>
+        <div class="ctrl">
+          <label for="mPrice">Price ($)</label>
+          <input type="range" id="mPrice" min="20" max="300" step="5" value="150">
+          <span class="val" id="vmPrice">$150</span>
+        </div>
+        <div class="ctrl">
+          <label for="mVC">Variable cost ($)</label>
+          <input type="range" id="mVC" min="10" max="250" step="5" value="80">
+          <span class="val" id="vmVC">$80</span>
+        </div>
+        <div class="ctrl">
+          <label for="mFC">Fixed cost ($M)</label>
+          <input type="range" id="mFC" min="10" max="600" step="10" value="200">
+          <span class="val" id="vmFC">$200M</span>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="rd"><span>Contribution margin</span><b id="oCM">&mdash;</b></div>
+        <div class="rd"><span>Total contribution</span><b id="oContrib">&mdash;</b></div>
+        <div class="rd"><span>Year-1 profit</span><b id="oProfit">&mdash;</b></div>
+        <div class="rd"><span>Breakeven share</span><b id="oBEshare">&mdash;</b></div>
+      </div>
+
+      <div class="verdict" id="vA">&mdash;</div>
+    </div>
+
+    <h3>Problems, sorted by when they hit you</h3>
+
+    <p>Instead of one big messy list of risks, split them by timing. It reads much better.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>When</th><th>What sits here</th></tr></thead>
+        <tbody>
+          <tr><td class="c">Before we go in</td><td>Do we have the money? Do we need government permission? Are foreign companies even allowed? Can we buy land?</td></tr>
+          <tr><td class="c">While setting up</td><td>Can we get materials, build a factory, hire people, find distributors, reach shops, advertise?</td></tr>
+          <tr><td class="c">After we are in</td><td>Rivals cut prices to push us out. Someone copies our product. And if it fails, can we even leave &mdash; or is the money stuck in a factory nobody wants?</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Four ways to enter</h3>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Way in</th><th>Speed</th><th>Cost</th><th>Control</th><th>Use it when</th></tr></thead>
+        <tbody>
+          <tr><td>Build it ourselves</td><td class="r">Slow</td><td class="r">Expensive</td><td class="g">Full</td><td>What makes us special has to be protected, and nobody good is for sale</td></tr>
+          <tr><td>Buy a local company</td><td class="g">Fast</td><td class="r">Big cheque</td><td class="g">High</td><td>We need their shops and customers straight away</td></tr>
+          <tr><td>Partner with someone</td><td>Medium</td><td class="g">Shared</td><td class="r">Split</td><td>Rules require a local partner, or we do not know the market</td></tr>
+          <tr><td>Pay someone else to do it</td><td class="g">Fastest</td><td class="g">Cheapest</td><td class="r">Least</td><td>We just want to test the water without committing</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout good">
+      <span class="lab">WHY GOOD QUESTIONS PAY OFF LATER</span>
+      <p>For the skincare company, the answer is <strong>build it ourselves</strong>. Their whole selling point is natural ingredients. Buying an American company or partnering with one would mean inheriting a chemical product range and losing the one thing that makes them different.</p>
+      <p>Notice where that came from &mdash; a question asked in minute two about how the product is different. Good questions early pay you back twenty minutes later.</p>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 03</b>
+      <ol>
+        <li>Write the five-part profit formula from memory.</li>
+        <li>Given fixed costs of $90 million and $45 profit per unit, work out the units needed to break even, out loud.</li>
+        <li>Say the &ldquo;flip it around&rdquo; line in your own words.</li>
+        <li>Name the three timing buckets for problems and give one example of each.</li>
+        <li>Say which way in you would pick for a luxury brand entering a market full of cheap rivals, and why.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 04 LAUNCHING A PRODUCT ================= -->
+  <section class="mod" id="m04">
+    <div class="mod-head"><span class="num">04</span><h2>Launching a product</h2></div>
+    <p class="tagline">And the question almost nobody asks</p>
+
+    <p>This looks like market entry, but one thing is different. In market entry you are asking whether a place is worth going to. Here the market already exists. The question is narrower: <strong>will this particular product sell, at what price, to whom?</strong></p>
+
+    <h3>The structure</h3>
+
+    <div class="tree">
+      <div class="trow"><div class="tnode t0">SHOULD WE LAUNCH IT?</div></div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode t1">Does anyone want it?<br><small>real need, or a gap nobody fills</small></div>
+        <div class="tnode t1">Who pays for it?<br><small>our cash, a loan, or investors</small></div>
+        <div class="tnode t1">Can we make and sell it?<br><small>materials, factory, shops, ads</small></div>
+        <div class="tnode gr">Does it make money?<br><small>and when does it break even</small></div>
+      </div>
+    </div>
+
+    <p>The money question matters more than people expect. If the launch is paid for with our own cash, we can be patient. If it is paid for by investors who want a return in three years, the bar is much higher. Ask which it is.</p>
+
+    <h3>The question almost nobody asks</h3>
+
+    <div class="callout">
+      <span class="lab">ARE WE STEALING FROM OURSELVES?</span>
+      <p>If the client already sells something similar, some people buying the new product would have bought the old one anyway. That sale is not new money. You have just moved it from one shelf to another.</p>
+      <p>This has an ugly name &mdash; cannibalisation &mdash; but the idea is simple: <strong>only count sales that would not have happened otherwise.</strong></p>
+      <p>Ask it plainly: <em>&ldquo;Do we expect some of these sales to come out of our existing product? Roughly what share?&rdquo;</em></p>
+    </div>
+
+    <h3>Worked example &mdash; a biscuit company launches a protein bar</h3>
+
+    <p>A US biscuit maker wants to launch a protein bar. Here is the sum, done twice &mdash; once the way most people do it, once properly.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Step</th><th>Working</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Bars we expect to sell in year 1</td><td>&mdash;</td><td>500,000</td></tr>
+          <tr><td>Price $6, cost to make $3.50</td><td>60 &minus; 35</td><td class="g">$2.50 per bar</td></tr>
+          <tr><td>Money from bars</td><td>500,000 &times; $2.50</td><td class="g">$1.25 million</td></tr>
+          <tr><td>Setting up the line and advertising</td><td>&mdash;</td><td class="r">$800,000</td></tr>
+          <tr><td><strong>The easy answer</strong></td><td>1.25 &minus; 0.80</td><td class="g"><strong>Profit $450,000 &mdash; launch it</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Now add the question nobody asks. Suppose 30% of protein bar buyers would otherwise have bought our biscuit pack, which earns us $1 each.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Step</th><th>Working</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Bars that steal a biscuit sale</td><td>30% of 500,000</td><td class="r">150,000</td></tr>
+          <tr><td>Biscuit money we lose</td><td>150,000 &times; $1</td><td class="r">$150,000</td></tr>
+          <tr><td>Real new money</td><td>12.5 million &minus; 1.5 million</td><td class="g">$1.1 million</td></tr>
+          <tr><td><strong>The honest answer</strong></td><td>1.10 &minus; 0.80</td><td class="g"><strong>Profit $300,000</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout good">
+      <span class="lab">WHY THIS IS WORTH DOING</span>
+      <p>Here the launch still works, just less well. But push the numbers a little &mdash; make it 60% stealing, or make the biscuit margin $2 instead of $1 &mdash; and the whole launch turns into a loss.</p>
+      <p>That is the point. A product can look profitable and still make the company poorer. Very few candidates check this. Checking it makes you look like you have actually run a business.</p>
+    </div>
+
+    <h3>One more thing to raise</h3>
+
+    <p>Ask what rivals will do. If we launch a protein bar and it works, how long before the two big players launch theirs? If the answer is four months, our year-2 numbers are far too optimistic. Saying this out loud costs ten seconds and shows you are thinking past the spreadsheet.</p>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 04</b>
+      <ol>
+        <li>Say the four branches of the launch structure.</li>
+        <li>Explain in one sentence why stealing sales from your own product matters.</li>
+        <li>Redo the biscuit example with 60% of bar buyers switching from biscuits. Does it still work?</li>
+        <li>Say the difference between payback period and NPV in plain words.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 05 SETTING A PRICE ================= -->
+  <section class="mod" id="m05">
+    <div class="mod-head"><span class="num">05</span><h2>Setting a price</h2></div>
+    <p class="tagline">Three walls make a box</p>
+
+    <p>The most common mistake here is treating the three pricing methods like a menu and picking one. They are not a menu. Each one tells you a <strong>different edge</strong>, and your price lives in the space between them.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Method</th><th>What it tells you</th><th>How to work it out</th></tr></thead>
+        <tbody>
+          <tr><td>Based on our costs</td><td class="r"><strong>The lowest we can go</strong></td><td>What one unit costs us to make, plus a share of the setup money we want back</td></tr>
+          <tr><td>Based on rivals</td><td class="a"><strong>Where everyone else sits</strong></td><td>What the closest alternative costs, adjusted up or down for how we differ</td></tr>
+          <tr><td>Based on value</td><td class="g"><strong>The highest we can go</strong></td><td>How much money or hassle we save the customer &mdash; that is the most they would ever pay</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tree">
+      <div class="trow"><div class="tnode t0">YOUR PRICE LIVES IN HERE</div></div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode rd">FLOOR &mdash; our cost</div>
+        <div class="tnode t1">&larr; pick somewhere inside &rarr;</div>
+        <div class="tnode gr">CEILING &mdash; their value</div>
+      </div>
+    </div>
+
+    <h3>There is a fourth method, for rare cases</h3>
+
+    <p>Sometimes all three break at once. Cost is tiny compared to what the thing is worth (software, medicine). There are no rivals, because nobody has made this before. And the value to the customer is huge but impossible to put a number on &mdash; how do you price a life-saving drug?</p>
+
+    <p>Then price is set purely by testing what people will actually pay. Try different prices in different places and watch what happens to sales. That is all &ldquo;price sensitivity&rdquo; pricing really means.</p>
+
+    <h3>Which one leads depends on the product</h3>
+
+    <ul>
+      <li><strong>Much like something that already exists</strong> &rarr; rivals lead, value adjusts it up or down</li>
+      <li><strong>A better version of our own product</strong> &rarr; price the <em>difference</em>: old price plus what the improvement is worth</li>
+      <li><strong>Genuinely new, nothing to compare it to</strong> &rarr; value leads, because there is no rival price to look at</li>
+    </ul>
+
+    <h3>Worked example &mdash; cow feed in Uttar Pradesh</h3>
+
+    <p>A Swedish company has made a new cow feed. One bag feeds one cow for 30 days, and the cow gives 4 extra litres of milk every 10 days.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Edge</th><th>Working</th><th>Answer</th></tr></thead>
+        <tbody>
+          <tr><td class="r">Lowest &mdash; our cost</td><td>Ingredients, making it, packing it, and getting it out to villages, which is expensive</td><td class="r"><strong>$100</strong></td></tr>
+          <tr><td class="a">Rivals</td><td>The feed farmers buy today</td><td class="a"><strong>$95</strong></td></tr>
+          <tr><td class="g">Highest &mdash; their value</td><td>4 litres every 10 days means 12 extra litres in a 30-day bag. At $5 a litre that is $60 extra income. So a farmer would pay up to $95 + $60</td><td class="g"><strong>$155</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="formula">
+      OUR PRICE SITS BETWEEN $100 AND $155
+      <small>launch around $110 to $120 &middot; try different prices in different districts &middot; look again in six months</small>
+    </div>
+
+    <h3>Two things to say out loud, not just calculate</h3>
+
+    <div class="split">
+      <div class="card red">
+        <h4>OUR FLOOR IS ABOVE THEIR PRICE</h4>
+        <p>It costs us $100 to make. The rival sells at $95. So we can <em>never</em> be the cheap option.</p>
+        <p>That changes everything. We cannot win on price, so the entire sales approach has to be about proving the extra milk is real. If we cannot prove it, we have no business here.</p>
+      </div>
+      <div class="card green">
+        <h4>FLAG THE SHAKY ASSUMPTION FIRST</h4>
+        <p>The $60 of value assumes lab results happen on real American farms, with American cows, in American heat. They might not.</p>
+        <p>Say so before the interviewer does, and suggest the fix: run a small trial on 50 farms first and check the milk actually goes up.</p>
+      </div>
+    </div>
+
+    <h3>What if you are given no numbers at all?</h3>
+
+    <p>This happens often, and people panic. You do not need numbers to answer well. Say what you <em>would</em> work out and where you would get it:</p>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;I do not have figures, so let me lay out the method. I would find the floor from our cost per unit. I would find the ceiling from the money we save the customer &mdash; here that is extra milk, which I could work out from litres and the milk price. And I would check where rivals sit today. Then I would recommend a price inside that range, closer to the bottom if we want share quickly, closer to the top if we want margin. Do you have any of those figures?&rdquo;</p>
+    </div>
+
+    <div class="sense">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <g fill="none" stroke="#5CE1E6" stroke-width="1.5">
+          <path d="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19"/>
+          <path d="M12 6 Q17 8 18 12"/><path d="M12 6 Q7 8 6 12"/>
+        </g>
+      </svg>
+      <div>
+        <b>Sense check</b>
+        <p>Cost and value are two nails in the wall, and your price hangs between them. Below the cost nail, you fall. Above the value nail, nobody reaches for you. The rival price is where everyone else has already hung theirs. Someone who names only one of the three has hammered in one nail and is hoping.</p>
+      </div>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 05</b>
+      <ol>
+        <li>Say which method gives the floor, which gives the ceiling, and which gives the middle.</li>
+        <li>Work out the ceiling for a machine that saves a factory $20,000 a year, where the current machine costs $50,000</li>
+        <li>Explain what it means when your cost floor is higher than the rival&rsquo;s price.</li>
+        <li>Say the &ldquo;no numbers&rdquo; script out loud without reading it.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 06 GROWING FASTER ================= -->
+  <section class="mod" id="m06">
+    <div class="mod-head"><span class="num">06</span><h2>Growing faster</h2></div>
+    <p class="tagline">Split revenue into three parts and attack each</p>
+
+    <p>The client says they want to grow 30% a year. Before you draw anything, ask one question: <strong>how fast is the market growing?</strong></p>
+
+    <p>If the market grows 8% and they want 30%, they are not riding a wave. They are taking customers off someone specific. That completely changes the case &mdash; now you need to know who, and why those customers would switch.</p>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;Before I list ways to grow, can I check the target against the market? If the industry grows at 8% and we want 30%, most of that has to come from taking share off rivals rather than the market getting bigger. That changes where I would look.&rdquo;</p>
+    </div>
+
+    <h3>The structure</h3>
+
+    <div class="tree">
+      <div class="trow"><div class="tnode t0">GROW</div></div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode gr">ON OUR OWN</div>
+        <div class="tnode t1">BY BUYING OR PARTNERING</div>
+      </div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode t2">Same product<br>same customers<br><small>sell harder, sell better</small></div>
+        <div class="tnode t2">Same product<br>new customers<br><small>new cities, new age groups</small></div>
+        <div class="tnode t2">New product<br>same customers<br><small>sell more to people we know</small></div>
+        <div class="tnode t2">New product<br>new customers<br><small>hardest, riskiest</small></div>
+        <div class="tnode t2">Buy a rival<br>or team up<br><small>see section 07</small></div>
+      </div>
+    </div>
+
+    <h3>Split revenue into three parts</h3>
+
+    <p>This is the single most useful thing in this section. Learn it properly.</p>
+
+    <div class="formula">
+      REVENUE = HOW MANY CUSTOMERS &times; HOW OFTEN THEY BUY &times; HOW MUCH PER PURCHASE
+      <small>three parts, three sets of levers, four seconds to say</small>
+    </div>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Part</th><th>Ways to push it up</th></tr></thead>
+        <tbody>
+          <tr><td class="g">More customers</td><td>New cities, new age groups, referrals, a cheaper entry option, better advertising</td></tr>
+          <tr><td class="g">They buy more often</td><td>Loyalty points, subscriptions, reminders, making it a habit, refill packs</td></tr>
+          <tr><td class="g">They spend more each time</td><td>Bundles, bigger sizes, add-ons at checkout, nudging people to the premium version, raising prices</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Worked example &mdash; a food delivery app wants to double</h3>
+
+    <p>Where it is today:</p>
+
+    <div class="ascii"><span class="d">customers</span>     1 million
+<span class="d">orders each</span>    4 per month
+<span class="d">order value</span>    $30
+<span class="d">our cut</span>        20%
+
+<span class="k">revenue</span> = 1,000,000 <span class="a">&times;</span> 4 <span class="a">&times;</span> 30 <span class="a">&times;</span> 0.20 = <span class="g">$24 million a month</span></div>
+
+    <p>To double, they need $48 million Most people jump straight to &ldquo;double the customers&rdquo;. Look what happens if you nudge all three instead:</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Approach</th><th>What has to happen</th><th>Realistic?</th></tr></thead>
+        <tbody>
+          <tr><td>Customers only</td><td>1 million &rarr; 2 million</td><td class="r">Very hard. Doubling a user base is a multi-year fight.</td></tr>
+          <tr><td>Orders only</td><td>4 &rarr; 8 per month</td><td class="r">Very hard. That is a habit change.</td></tr>
+          <tr><td>Order value only</td><td>$30 &rarr; $60</td><td class="r">Very hard. People notice.</td></tr>
+          <tr><td><strong>All three a bit</strong></td><td>+25% customers, +25% orders, +28% order value</td><td class="g">1.25 &times; 1.25 &times; 1.28 = <strong>2.0</strong>. Much easier.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout good">
+      <span class="lab">THE INSIGHT TO SAY OUT LOUD</span>
+      <p>&ldquo;Doubling any single part is very hard. But small gains multiply. A quarter more customers, a quarter more orders and a quarter more spend gets us there, and each of those is a normal year&rsquo;s work rather than a miracle.&rdquo;</p>
+      <p>This is why splitting revenue into parts is worth doing. It turns one impossible goal into three possible ones.</p>
+    </div>
+
+    <h3>Then check it is worth having</h3>
+
+    <p>One last step people forget. Growth costs money. If you get 25% more customers by spending heavily on discounts and adverts, check that those customers are worth more than they cost &mdash; that is the LTV against CAC comparison from Day 1. Growth that loses money on every new customer is not growth. It is a slow leak.</p>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 06</b>
+      <ol>
+        <li>Say the three-part revenue split from memory.</li>
+        <li>Give two levers under each of the three parts.</li>
+        <li>A shop has 2,000 customers buying twice a year at $50. Work out revenue, then find three ways to reach $30,000</li>
+        <li>Explain why small gains in three places beat one big gain in one place.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 07 BUYING A COMPANY ================= -->
+  <section class="mod" id="m07">
+    <div class="mod-head"><span class="num">07</span><h2>Buying a company</h2></div>
+    <p class="tagline">What it is worth, what it costs, what could go wrong</p>
+
+    <p>The client wants to buy another company. Your job is to say whether it is worth the asking price. Three parts: <strong>what we get</strong>, <strong>what we pay</strong>, and <strong>what could go wrong</strong>.</p>
+
+    <div class="tree">
+      <div class="trow"><div class="tnode t0">SHOULD WE BUY IT?</div></div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode t1">THE MONEY SIDE</div>
+        <div class="tnode t1">THE PEOPLE SIDE</div>
+      </div>
+      <div class="tbranch"></div>
+      <div class="trow">
+        <div class="tnode gr">What we get<br><small>the company on its own,<br>plus the extra from joining up</small></div>
+        <div class="tnode rd">What we pay<br><small>asking price,<br>plus the cost of merging them in</small></div>
+        <div class="tnode t2">Do we fit?<br><small>ways of working, structure, plans</small></div>
+        <div class="tnode t2">What could bite<br><small>staff leaving, customers leaving,<br>regulators, the economy</small></div>
+      </div>
+    </div>
+
+    <h3>&ldquo;Synergies&rdquo; just means the extra you get from joining up</h3>
+
+    <p>It is a scary word for a simple idea. Two companies together can sometimes do things neither could alone. Three kinds:</p>
+
+    <ul>
+      <li><strong>Selling more</strong> &mdash; we sell our stuff to their customers, and theirs to ours. Or together we are big enough to charge a bit more.</li>
+      <li><strong>Spending less</strong> &mdash; we do not need two head offices, two finance teams, two warehouses. Buying in bigger amounts gets cheaper prices.</li>
+      <li><strong>Money tricks</strong> &mdash; a bigger company can usually borrow more cheaply, and sometimes pays less tax.</li>
+    </ul>
+
+    <h3>A quick way to value a company</h3>
+
+    <p>You will never build a proper valuation model in a 30-minute interview. Use this shortcut, say your assumptions out loud, and ask if they are alright.</p>
+
+    <div class="formula">
+      VALUE = YEARLY CASH &divide; (RETURN WE WANT &minus; GROWTH RATE)
+      <small>say both percentages out loud and check them with the interviewer</small>
+    </div>
+
+    <p>Why it works, roughly: if a company throws off $15 million a year forever, and we want a 20% return, and the cash grows 15% a year, then the gap between those two rates &mdash; 5% &mdash; is what really matters. Small gap, big value.</p>
+
+    <h3>Worked example &mdash; an online shop buys a small AI company</h3>
+
+    <p>Asking price $250 million The buyer is a beauty products website with $5 billion of sales. The target sells AI software that reads customer calls and finds useful patterns.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Step</th><th>Working</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Our profit before tax</td><td>$5 billion &times; 10%</td><td>$500 million</td></tr>
+          <tr><td>After tax</td><td>&times; (1 &minus; 20%)</td><td>$400 million</td></tr>
+          <tr><td>The AI tool lifts sales 5%</td><td>&times; 5%</td><td>$20 million extra</td></tr>
+          <tr><td class="r">Minus what the target stops earning</td><td>It stops selling to outsiders and only works for us</td><td class="r">&minus;$5 million</td></tr>
+          <tr><td><strong>Real extra cash per year</strong></td><td></td><td class="g"><strong>$15 million</strong></td></tr>
+          <tr><td>Value</td><td>15 &divide; (20% &minus; 15%)</td><td class="g"><strong>$300 million</strong></td></tr>
+          <tr><td><strong>Decision</strong></td><td>Worth $300 million, costs $250 million</td><td class="g"><strong>Buy it</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout good">
+      <span class="lab">THE LINE THAT SETS YOU APART</span>
+      <p>That <strong>minus $5 million</strong> is the whole point. When you buy a company and point it at your own problems, it stops earning money from its old customers. Almost nobody subtracts that. Doing it shows you are thinking about a real business, not just running a formula.</p>
+    </div>
+
+    <h3>Now attack your own answer</h3>
+
+    <p>Once you have a positive number, do not stop. Ask how much of the value comes from the company as it stands, and how much depends on the joining-up working perfectly.</p>
+
+    <div class="split">
+      <div class="card red">
+        <h4>A SHAKY DEAL</h4>
+        <p>On its own the company is worth $900 million The joining-up adds another $500 million Total $1.4 billion, against an asking price of $1.3 billion</p>
+        <p>So the entire $100 million of safety margin depends on every bit of that $500 million actually happening. If only 80% of it lands, we have overpaid.</p>
+      </div>
+      <div class="card green">
+        <h4>WHAT TO RECOMMEND</h4>
+        <p>Buy it &mdash; but only with a written plan for the joining-up, with named people responsible and dates attached.</p>
+        <p>Or ask for a lower price, or a deal where part of the payment depends on the savings actually appearing.</p>
+        <p>That is an adviser&rsquo;s answer, not a calculator&rsquo;s.</p>
+      </div>
+    </div>
+
+<div class="console">
+      <h4>SYNERGY STRESS TEST &mdash; LIVE</h4>
+      <p class="hint">// set the deal up so it clears, then drag realisation down and watch it break.</p>
+
+      <div class="ctrls">
+        <div class="ctrl">
+          <label for="sCF">Standalone CF ($M)</label>
+          <input type="range" id="sCF" min="5" max="200" step="5" value="90">
+          <span class="val" id="vsCF">$90M</span>
+        </div>
+        <div class="ctrl">
+          <label for="sSyn">Synergy CF ($M)</label>
+          <input type="range" id="sSyn" min="0" max="120" step="5" value="50">
+          <span class="val" id="vsSyn">$50M</span>
+        </div>
+        <div class="ctrl">
+          <label for="sReal">Synergies realised</label>
+          <input type="range" id="sReal" min="0" max="100" step="5" value="100">
+          <span class="val" id="vsReal">100%</span>
+        </div>
+        <div class="ctrl">
+          <label for="sHurdle">Hurdle rate</label>
+          <input type="range" id="sHurdle" min="6" max="30" step="1" value="15">
+          <span class="val" id="vsHurdle">15%</span>
+        </div>
+        <div class="ctrl">
+          <label for="sGrowth">Growth rate</label>
+          <input type="range" id="sGrowth" min="0" max="20" step="1" value="5">
+          <span class="val" id="vsGrowth">5%</span>
+        </div>
+        <div class="ctrl">
+          <label for="sAsk">Asking price ($M)</label>
+          <input type="range" id="sAsk" min="100" max="2500" step="50" value="1300">
+          <span class="val" id="vsAsk">$1,300M</span>
+        </div>
+      </div>
+
+      <div class="readout">
+        <div class="rd"><span>Standalone value</span><b id="oStand">&mdash;</b></div>
+        <div class="rd"><span>Synergy value</span><b id="oSynV">&mdash;</b></div>
+        <div class="rd"><span>Total value</span><b id="oTotal">&mdash;</b></div>
+        <div class="rd"><span>Headroom vs ask</span><b id="oHead">&mdash;</b></div>
+      </div>
+
+      <div class="verdict" id="vB">&mdash;</div>
+    </div>
+
+    <h3>Checking a company before you buy it</h3>
+
+    <p>This is the same job from the other side of the table. Someone is thinking of investing and wants you to look under the bonnet.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>What you look at</th><th>What you are trying to find out</th></tr></thead>
+        <tbody>
+          <tr><td class="c">The market</td><td>Is it big, is it growing, and what is driving that?</td></tr>
+          <tr><td class="c">The company</td><td>Past sales and margins, orders already booked, what they are good at, whether rivals can copy them</td></tr>
+          <tr><td class="c">The fit</td><td>Does this give the buyer something they genuinely do not have?</td></tr>
+          <tr><td class="c">The price</td><td>What similar companies sold for, how long to earn the money back</td></tr>
+          <tr><td class="r">The risks</td><td>Inside: merging systems and cultures. Outside: raw material prices, rule changes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sense">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <g fill="none" stroke="#5CE1E6" stroke-width="1.5">
+          <path d="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19"/>
+          <path d="M12 10 Q15 11 15.5 12.5"/><path d="M12 10 Q9 11 8.5 12.5"/>
+        </g>
+      </svg>
+      <div>
+        <b>Sense check</b>
+        <p>What the company is worth today is a rope you have already pulled on. The extra from joining up is a rope you threw a minute ago and have not tested. A deal that only just works because of the second rope is a jump planned entirely on the untested one. You can still take it &mdash; but say out loud that you are, and test the anchor first.</p>
+      </div>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 07</b>
+      <ol>
+        <li>Name the three kinds of extra value from joining two companies up.</li>
+        <li>Write the quick valuation formula and say what each part means.</li>
+        <li>Explain why you subtract the money the bought company stops earning.</li>
+        <li>Say what you would recommend when all the safety margin comes from joining-up savings.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 08 CUTTING COSTS ================= -->
+  <section class="mod" id="m08">
+    <div class="mod-head"><span class="num">08</span><h2>Cutting costs</h2></div>
+    <p class="tagline">Cut where the money is, not where it is easy</p>
+
+    <p>Here is a case type that gets missed in most prep, and it comes up a lot: <strong>the client wants to spend less</strong>. Sometimes it arrives on its own. More often it turns up in the middle of a profit case, once you have worked out that costs are the problem.</p>
+
+    <p>The whole thing rests on one rule.</p>
+
+    <div class="callout good">
+      <span class="lab">THE RULE</span>
+      <p><strong>Cut where the money is, not where cutting is easy.</strong></p>
+      <p>Saving 20% on something that is 5% of your costs saves you 1%. Saving 5% on something that is 40% of your costs saves you 2%. People always attack the small easy pile first. Do not.</p>
+    </div>
+
+    <h3>Step 1 &mdash; lay the costs out and size them</h3>
+
+    <p>Before suggesting anything, ask for the breakdown. If you are not given one, ask for it. You cannot cut sensibly without knowing where the money goes.</p>
+
+    <p>Take a restaurant with $10 of cost for every $10 of sales:</p>
+
+    <div class="ascii"><span class="d">ingredients</span>   $3.50   <span class="g">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>
+<span class="d">staff</span>         $3   <span class="g">&#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</span>
+<span class="d">rent</span>          $2   <span class="a">&#9608;&#9608;&#9608;&#9608;</span>
+<span class="d">electricity</span>   $0.80    <span class="r">&#9608;&#9608;</span>
+<span class="d">everything else</span> $0.70  <span class="r">&#9608;</span></div>
+
+    <p>The client wants to cut costs by 10%, so $1. Ingredients and staff together are $6.50 of the $10. That is where the $1 has to come from. Even wiping out the electricity bill completely only gets you $0.80, and you would be sitting in the dark.</p>
+
+    <h3>Step 2 &mdash; three ways to cut anything</h3>
+
+    <p>For every cost bucket, there are only three questions. This is your MECE split.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Lever</th><th>The question</th><th>Restaurant example</th></tr></thead>
+        <tbody>
+          <tr><td class="c">Pay less for it</td><td>Can we get the same thing cheaper?</td><td>Buy vegetables in bulk, change supplier, sign a longer contract for a better rate</td></tr>
+          <tr><td class="c">Use less of it</td><td>Can we get the same result with less?</td><td>Cut food waste, smaller portions of expensive items, better shift planning so nobody stands idle</td></tr>
+          <tr><td class="c">Stop doing it</td><td>Do we need this at all?</td><td>Drop the six dishes nobody orders, close on the quietest afternoon, stop the printed menus</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Say all three for the two biggest buckets and you have already given a better answer than most people.</p>
+
+    <h3>Step 3 &mdash; ask what breaks</h3>
+
+    <p>This is the step that separates a good answer from a dangerous one. Every cut has a cost of its own.</p>
+
+    <div class="split">
+      <div class="card red">
+        <h4>CUTS THAT COME BACK TO BITE</h4>
+        <p>Cheaper ingredients &rarr; food tastes worse &rarr; customers stop coming. You saved $0.50 and lost $3 of sales.</p>
+        <p>Fewer staff &rarr; slower service &rarr; bad reviews.</p>
+        <p>No maintenance &rarr; the fridge dies in summer &rarr; you lose a whole week.</p>
+      </div>
+      <div class="card green">
+        <h4>SAFE CUTS</h4>
+        <p>Less waste. Nobody notices, and the food is the same.</p>
+        <p>Better shift planning. Same service, fewer idle hours paid for.</p>
+        <p>Dropping dishes nobody orders. Frees up the kitchen and cuts stock.</p>
+      </div>
+    </div>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;Before I recommend these cuts, I want to check what each one might damage. Cutting ingredient quality saves money but risks the customer experience, which shows up in sales later. I would rank cuts by how much they save against how much they risk, and start with the ones that save real money and risk nothing.&rdquo;</p>
+    </div>
+
+    <h3>Two more things worth knowing</h3>
+
+    <ul>
+      <li><strong>One-off versus every year.</strong> Selling an unused van gives you cash once. Renegotiating the rent saves you money every single year. The second is worth far more, even if the number looks smaller. Always say which kind you are proposing.</li>
+      <li><strong>Fixed costs are harder to cut than variable ones.</strong> If sales halve, ingredient spending halves by itself. The rent does not. That is why a business with big fixed costs suffers badly in a bad year &mdash; and why cutting fixed costs, though painful, is often the only thing that really helps.</li>
+    </ul>
+
+    <h3>The full structure, in order</h3>
+
+    <div class="formula">
+      LIST THE COSTS &rarr; SIZE EACH ONE &rarr; ATTACK THE BIGGEST TWO<br>
+      &rarr; PAY LESS &middot; USE LESS &middot; STOP DOING IT &rarr; CHECK WHAT BREAKS
+      <small>and say whether each saving is one-off or every year</small>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 08</b>
+      <ol>
+        <li>Say the one rule of cost cutting in your own words.</li>
+        <li>Name the three levers for cutting any single cost.</li>
+        <li>A factory spends 50% on materials, 25% on labour, 15% on power, 10% on other. Where do you look first, and why?</li>
+        <li>Give one example of a cut that saves money now and costs more later.</li>
+        <li>Explain the difference between a one-off saving and a yearly one.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 09 DOING THE MATHS ================= -->
+  <section class="mod" id="m09">
+    <div class="mod-head"><span class="num">09</span><h2>Doing the maths</h2></div>
+    <p class="tagline">Out loud, fast, without slipping a zero</p>
+
+    <p>You will lose more marks to slow, mumbled arithmetic than to a weak structure. The good news is that this is the most fixable thing in the whole case. It is just habits.</p>
+
+    <h3>Habit 1 &mdash; say your unit before you start</h3>
+
+    <p>&ldquo;I will work in millions throughout.&rdquo; Then stay in millions. Most mistakes in cases are not arithmetic mistakes. They are someone quietly slipping between thousands, millions and billions and ending up a thousand times out.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Unit</th><th>Number</th><th>Powers of ten</th></tr></thead>
+        <tbody>
+          <tr><td class="c">Thousand</td><td>1,000</td><td>10&#179;</td></tr>
+          <tr><td class="c">Million</td><td>1,000,000</td><td>10&#8310;</td></tr>
+          <tr><td class="c">Billion</td><td>1,000,000,000</td><td>10&#8313;</td></tr>
+          <tr><td class="c">Trillion</td><td>1,000,000,000,000</td><td>10&#185;&#178;</td></tr>
+          <tr><td class="c">US population</td><td>~340 million</td><td>3.4 &times; 10&#8312;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Habit 2 &mdash; round hard, and say you are doing it</h3>
+
+    <p>Asking permission to round is not a weakness. It is a signal that you know what matters.</p>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;Can I round 31% to 30% to keep this clean?&rdquo;</p>
+      <p>&ldquo;I will treat the population as 340 million.&rdquo;</p>
+      <p>&ldquo;I am rounding up here, so my answer will be slightly high &mdash; I will keep that in mind at the end.&rdquo;</p>
+    </div>
+
+    <h3>Habit 3 &mdash; break percentages into pieces</h3>
+
+    <p>Never try to do 35% of 4,200 in one go. Find 10%, find 1%, then add up.</p>
+
+    <div class="ascii"><span class="d">10% of 4,200</span> = 420
+<span class="d">so 30%</span>       = 420 + 420 + 420 = 1,260
+<span class="d">and 5%</span>       = half of 420      = 210
+<span class="k">35%</span>          = 1,260 + 210     = <span class="g">1,470</span></div>
+
+    <p>Useful fractions to know by sight, because interviewers love them:</p>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>Fraction</th><th>Percent</th><th>Fraction</th><th>Percent</th></tr></thead>
+        <tbody>
+          <tr><td>1/2</td><td class="a">50%</td><td>1/6</td><td class="a">16.7%</td></tr>
+          <tr><td>1/3</td><td class="a">33.3%</td><td>1/7</td><td class="a">14.3%</td></tr>
+          <tr><td>1/4</td><td class="a">25%</td><td>1/8</td><td class="a">12.5%</td></tr>
+          <tr><td>1/5</td><td class="a">20%</td><td>1/9</td><td class="a">11.1%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Habit 4 &mdash; the rule of 72</h3>
+
+    <p>Something growing at a certain percent doubles in 72 divided by that percent, in years.</p>
+
+    <div class="formula">
+      YEARS TO DOUBLE = 72 &divide; GROWTH RATE
+      <small>9% growth doubles in 8 years &middot; 12% doubles in 6 &middot; 6% doubles in 12</small>
+    </div>
+
+    <p>Use it whenever anyone asks about five or ten years ahead. It takes two seconds and sounds like you have done this before.</p>
+
+    <h3>Habit 5 &mdash; keep the zeros out of the way</h3>
+
+    <p>48,000 &times; 52 looks horrible. It is not. Do 48 &times; 52 = 2,496, then put the three zeros back: 2,496,000. Take the zeros out at the start, put them back at the end.</p>
+
+    <h3>Habit 6 &mdash; every number gets a &ldquo;so what&rdquo;</h3>
+
+    <p>A number with no meaning attached scores nothing. The moment you finish a calculation, say what it tells you.</p>
+
+    <div class="split">
+      <div class="card red">
+        <h4>WHAT NOT TO DO</h4>
+        <p>&ldquo;So that gives us $70 million&rdquo;</p>
+        <p>[silence]</p>
+        <p>The interviewer now has to ask &ldquo;and?&rdquo;, which means you did not finish the thought.</p>
+      </div>
+      <div class="card green">
+        <h4>WHAT TO DO</h4>
+        <p>&ldquo;So that gives us $70 million Against $200 million of setup costs, we are $130 million short in year one. So the question becomes how long the client can fund that gap.&rdquo;</p>
+        <p>Number, meaning, next question. Every time.</p>
+      </div>
+    </div>
+
+    <h3>The sums that come up again and again</h3>
+
+    <div class="tscroll">
+      <table>
+        <thead><tr><th>What</th><th>How</th></tr></thead>
+        <tbody>
+          <tr><td>Breakeven units</td><td class="a">fixed costs &divide; profit per unit</td></tr>
+          <tr><td>Breakeven share</td><td class="a">breakeven units &divide; market size</td></tr>
+          <tr><td>Entry profit</td><td class="a">size &times; share &times; profit per unit &minus; fixed costs</td></tr>
+          <tr><td>Company value</td><td class="a">yearly cash &divide; (return wanted &minus; growth)</td></tr>
+          <tr><td>Customer lifetime value</td><td class="a">money per year &times; margin &divide; churn rate</td></tr>
+          <tr><td>Platform revenue</td><td class="a">total sales through it &times; the cut we keep</td></tr>
+          <tr><td>Years to double</td><td class="a">72 &divide; growth rate</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Drill set &mdash; sixty seconds each, out loud, no calculator</h3>
+
+    <ol>
+      <li>Price $240, cost $165, fixed costs $9 million How many units to break even?</li>
+      <li>Market 40 million units, we take 3%, we make $12 a unit, fixed costs $100 million Profit?</li>
+      <li>Sales $800 million growing 9% a year. Roughly what year do they pass $1.6 billion?</li>
+      <li>A company has $500 million of sales. Materials are 60% of that. A 2% saving on materials is worth how much?</li>
+      <li>Yearly cash $40 million, return wanted 18%, growth 10%. What is the company worth?</li>
+      <li>A customer pays $80 a month and stays 20 months. It cost $600 to sign them up. Is that a good deal?</li>
+    </ol>
+
+    <p><strong>Answers.</strong> (1) 12,000 units. (2) 1.2 million units &times; $12 = $144 million, minus $100 million = $44 million (3) 72 &divide; 9 = 8 years. (4) Materials are $300 million, 2% is $6 million (5) 40 &divide; 0.08 = $500 million (6) They bring $1,600, cost $600 &mdash; that is 2.7 times, which is thin. Healthy is 3 times or better.</p>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 09</b>
+      <ol>
+        <li>Do all six drills again, cold and timed, saying the &ldquo;so what&rdquo; after each.</li>
+        <li>Convert without pausing: 450 million into billions, 2.3 billion into millions, 700,000 into millions.</li>
+        <li>Say 1/6, 1/7 and 1/8 as percentages without thinking.</li>
+        <li>Say the rounding-permission line so it sounds natural, not rehearsed.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 10 FINISHING THE CASE ================= -->
+  <section class="mod" id="m10">
+    <div class="mod-head"><span class="num">10</span><h2>Finishing the case</h2></div>
+    <p class="tagline">The last sixty seconds decide how you are remembered</p>
+
+    <p>Here is a gap worth closing before the interview, not during it. Most people spend all their prep on the middle of a case and none on the end. But the last sixty seconds are what the interviewer actually remembers when they write you up afterwards.</p>
+
+    <p>There is a fixed shape. Learn it and use it every single time.</p>
+
+    <div class="formula">
+      ANSWER &rarr; THREE REASONS &rarr; ONE RISK &rarr; ONE NEXT STEP
+      <small>sixty seconds &middot; answer first, always</small>
+    </div>
+
+    <h3>Answer first. Not last.</h3>
+
+    <p>This feels wrong the first time. In school you show your working and then reveal the answer. In consulting you do the opposite &mdash; you say the answer, then explain it.</p>
+
+    <p>The reason is practical. The person you are advising is busy. If they only hear your first sentence, that sentence should be the useful one.</p>
+
+    <div class="split">
+      <div class="card red">
+        <h4>BUILDING UP TO IT</h4>
+        <p>&ldquo;So we looked at market size, and it was 20 million units, and then we looked at share, and we thought 5% was reasonable, and the margin was $70, which gave us $70 million, and the fixed costs were $200 million, so&hellip; so I think probably they should not enter? Unless they can wait?&rdquo;</p>
+        <p>The interviewer stopped listening at &ldquo;so we looked at&rdquo;. And the ending sounds unsure.</p>
+      </div>
+      <div class="card green">
+        <h4>ANSWER FIRST</h4>
+        <p>&ldquo;The client should enter, but only if they can accept losses for four years.&rdquo;</p>
+        <p>Now everything after that has somewhere to attach itself. The interviewer knows where you landed and can follow how you got there.</p>
+      </div>
+    </div>
+
+    <h3>A full worked ending</h3>
+
+    <p>Here is the skincare case, closed properly. Read it out loud and time yourself. It should take about sixty seconds.</p>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p><strong>The answer.</strong> &ldquo;My recommendation is that the client should enter the US, but only if they are prepared to lose money for the first three to four years.&rdquo;</p>
+      <p><strong>Reason one.</strong> &ldquo;The economics work eventually. Each jar earns us $70, and we need 14% of the market to cover our $200 million of setup costs. That is a big share, but it is reachable in a growing market.&rdquo;</p>
+      <p><strong>Reason two.</strong> &ldquo;We have something genuinely different. Both existing players use chemical ingredients and we use natural ones, so we are not fighting them head-on on the same thing.&rdquo;</p>
+      <p><strong>Reason three.</strong> &ldquo;There is nothing blocking us operationally. We can set up manufacturing, and there are no major regulatory barriers.&rdquo;</p>
+      <p><strong>The risk.</strong> &ldquo;The main risk is that 14% share takes longer than four years. If the existing players cut prices when we arrive, it could take much longer, and the client needs to know that going in.&rdquo;</p>
+      <p><strong>The next step.</strong> &ldquo;The first thing I would do is a small test launch in two or three cities, to check whether American customers actually pay a premium for natural ingredients before we commit $200 million to a factory.&rdquo;</p>
+    </div>
+
+    <h3>Why one risk, and not five</h3>
+
+    <p>Naming one risk shows judgement. Naming five shows you cannot tell which one matters. Pick the one that would most change the answer if it turned out badly, and say only that one.</p>
+
+    <h3>Why the next step matters so much</h3>
+
+    <p>This is the part almost everyone drops, and it is the cheapest mark in the whole case. A recommendation with no next step is just an opinion. A recommendation with a next step is advice.</p>
+
+    <p>Good next steps are small, cheap and answer the biggest unknown. A pilot in two cities. A survey of 200 farmers. A call with three suppliers. Never &ldquo;do more analysis&rdquo; &mdash; say what analysis, and what decision it would settle.</p>
+
+    <h3>What if you did not finish?</h3>
+
+    <p>This happens to everyone, and how you handle it matters more than the fact of it. Do not pretend. Do not trail off. Say where you got to and what you would have done next.</p>
+
+    <div class="callout say">
+      <span class="lab">SAY IT LIKE THIS</span>
+      <p>&ldquo;Based on what we have covered, my view leans towards entering, driven mainly by the margin per unit. I have not yet checked whether we can actually build a distribution network, and that would be the thing that could change my answer. If it holds up, I would recommend going ahead.&rdquo;</p>
+      <p>That is a confident, honest ending. It is far better than a mumbled one, and interviewers respect it.</p>
+    </div>
+
+    <div class="sense">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <g fill="none" stroke="#5CE1E6" stroke-width="1.5">
+          <path d="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19"/>
+          <path d="M12 6 Q17 8 18 12"/><path d="M12 6 Q7 8 6 12"/>
+        </g>
+      </svg>
+      <div>
+        <b>Sense check</b>
+        <p>You can climb beautifully for twenty minutes and still be judged on how you land. The ending is the only part of the case the interviewer will repeat to somebody else. Practise it more than you think you need to &mdash; it is sixty seconds you can rehearse word for word, and almost nobody does.</p>
+      </div>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 10</b>
+      <ol>
+        <li>Say the four parts of the ending in order.</li>
+        <li>Explain why you give the answer first rather than last.</li>
+        <li>Close the cow feed pricing case out loud in sixty seconds, using the shape.</li>
+        <li>Say the &ldquo;I did not finish&rdquo; line so it sounds calm rather than apologetic.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+  <!-- ================= 11 PRACTICE CASES ================= -->
+  <section class="mod" id="m11">
+    <div class="mod-head"><span class="num">11</span><h2>Practice cases</h2></div>
+    <p class="tagline">Four prompts. Run them timed.</p>
+
+    <p>Reading does not make you better at cases. Running them does. Here are four prompts covering the types in this region. Run each one timed, out loud, recorded on your phone.</p>
+
+    <div class="callout good">
+      <span class="lab">HOW TO RUN THESE PROPERLY</span>
+      <p>Set a timer for 20 minutes. Speak everything out loud, even the thinking. Record it. Then listen back and note two things: <strong>where you went silent for more than ten seconds</strong>, and <strong>where you said a number without saying what it meant</strong>.</p>
+      <p>Those two notes are worth more than another hour of reading.</p>
+    </div>
+
+    <h3>Case 1 &mdash; a European airline looks at the US</h3>
+
+    <p><em>Your client is a European low-cost airline. Growth at home has stopped. They want to look at the US. They have no profit target in mind but want steady long-term growth. Should they enter, and if so how?</em></p>
+
+    <p><strong>Watch for:</strong> did you ask, during clarifying, whether they mean domestic US routes or international ones, and whether they want to stay low-cost? Both change the whole case. Did you remember that US aviation is a brutal industry &mdash; expensive fuel, price-sensitive customers, fierce rivals? The five forces should fire here without being asked for.</p>
+
+    <h3>Case 2 &mdash; a coaching centre wants to double</h3>
+
+    <p><em>Your client runs 12 coaching centres in Gujarat teaching school students. They want to double revenue in three years. How should they do it?</em></p>
+
+    <p><strong>Watch for:</strong> did you split revenue into students, courses per student and fee per course? Did you check what the market is growing at before accepting the target? Did you consider online as a way to reach new students without building new centres &mdash; and then check whether online fees are lower, which would break the maths?</p>
+
+    <h3>Case 3 &mdash; a hospital needs to cut costs</h3>
+
+    <p><em>Your client is a 200-bed private hospital. Costs have risen faster than revenue for two years. The board wants a 12% cost reduction. Where would you look?</em></p>
+
+    <p><strong>Watch for:</strong> did you ask for the cost breakdown before suggesting anything? Did you go after the two biggest buckets rather than the easy ones? Most importantly &mdash; did you check what each cut might damage? In a hospital, some cuts are not just bad business, they are dangerous. Saying that out loud matters.</p>
+
+    <h3>Case 4 &mdash; a snack company is for sale</h3>
+
+    <p><em>Your client is a large packaged foods company. A regional snack brand with $400 million of sales is for sale at $1.2 billion Should they buy it?</em></p>
+
+    <p><strong>Watch for:</strong> did you split value into the company on its own plus the extra from joining up? Did you name all three kinds of extra value? Did you then attack your own number and ask how much of it depends on the joining-up going perfectly? And did you cover the people side, not just the money?</p>
+
+    <h3>Still outstanding</h3>
+
+    <div class="callout">
+      <span class="lab">FROM DAY 1</span>
+      <p>The university bookstore profitability case. Timed at 20 minutes, all four stages, recorded, with a note of the timestamp where you stalled.</p>
+      <p>It has now been carried for two days. It is the only thing in this whole plan that cannot be replaced by reading, and it is the thing that will tell you most about where you actually are.</p>
+    </div>
+
+    <div class="checkpoint">
+      <b>CHECKPOINT 11</b>
+      <ol>
+        <li>Run case 1 timed and recorded. Note the timestamp of your longest silence.</li>
+        <li>Listen back and count how many numbers you said without saying what they meant.</li>
+        <li>Pick the case you did worst on and run it again the next day.</li>
+        <li>Do the bookstore case. It has waited long enough.</li>
+      </ol>
+    </div>
+
+    <a class="back" href="#map">&larr; Back to map</a>
+  </section>
+
+
+  <svg class="strandline" viewBox="0 0 1200 26" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 13 L1200 13" stroke="#1B3F7A" stroke-width="2"/>
+    <path d="M0 13 Q150 1 300 13 T600 13 T900 13 T1200 13" stroke="#3D7BF0" stroke-width="1.5" fill="none"/>
+    <path d="M0 13 Q150 25 300 13 T600 13 T900 13 T1200 13" stroke="#3D7BF0" stroke-width="1.5" fill="none"/>
+  </svg>
+
+  <footer>
+    <p><b>DAY 02 COMPLETE.</b> Next region: reading charts and tables, size guesses at speed, factory and process cases, and the odd ones that fit no framework.</p>
+    <p>Before Day 3 &mdash; run at least two of the four practice cases above, timed and recorded. Reading this page again is not a substitute. It never is.</p>
+  </footer>
+
+  <div id="w2wsDone" data-day="d2"></div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function fmt(n){
+    if(!isFinite(n)) return "--";
+    var neg = n < 0;
+    n = Math.abs(n);
+    var s;
+    if(n >= 100) s = Math.round(n).toString();
+    else if(n >= 10) s = n.toFixed(1);
+    else s = n.toFixed(2);
+    return (neg ? "-" : "") + s;
+  }
+
+  function inr(n){
+    // n is in $ millions
+    if(!isFinite(n)) return "--";
+    var neg = n < 0, a = Math.abs(n);
+    if(a >= 1000) return (neg ? "-" : "") + "$" + (a / 1000).toFixed(2) + "B";
+    return (neg ? "-" : "") + "$" + a.toFixed(a >= 100 ? 0 : 1) + "M";
+  }
+
+  // ---------- CONSOLE A: market entry ----------
+  var A = ["mSize","mShare","mPrice","mVC","mFC"];
+  function runA(){
+    var size  = +document.getElementById("mSize").value;   // million units
+    var share = +document.getElementById("mShare").value;  // percent
+    var price = +document.getElementById("mPrice").value;  // dollars
+    var vc    = +document.getElementById("mVC").value;     // dollars
+    var fc    = +document.getElementById("mFC").value;     // $ millions
+
+    document.getElementById("vmSize").textContent  = size + "M units";
+    document.getElementById("vmShare").textContent = share + "%";
+    document.getElementById("vmPrice").textContent = "$" + price;
+    document.getElementById("vmVC").textContent    = "$" + vc;
+    document.getElementById("vmFC").textContent    = "$" + fc + "M";
+
+    var cm      = price - vc;                       // dollars per unit
+    var units   = size * (share/100);               // million units
+    var contrib = units * cm;                       // $ millions
+    var profit  = contrib - fc;
+
+    var beUnits = cm > 0 ? fc / cm : Infinity;      // million units
+    var beShare = cm > 0 && size > 0 ? (beUnits / size) * 100 : Infinity;
+
+    document.getElementById("oCM").textContent      = "$" + fmt(cm);
+    document.getElementById("oContrib").textContent = inr(contrib);
+    document.getElementById("oProfit").textContent  = inr(profit);
+    document.getElementById("oProfit").className    = profit >= 0 ? "g" : "r";
+    document.getElementById("oBEshare").textContent = isFinite(beShare) ? fmt(beShare) + "%" : "never";
+    document.getElementById("oBEshare").className   = !isFinite(beShare) ? "r" : (beShare <= share ? "g" : "a");
+
+    var v = document.getElementById("vA");
+    if(cm <= 0){
+      v.className = "verdict r";
+      v.textContent = "Contribution margin is zero or negative. Every unit sold loses money. No volume fixes this — the answer is a pricing or cost problem, not an entry problem.";
+    } else if(profit >= 0){
+      v.className = "verdict g";
+      v.textContent = "Profitable in year one at " + share + "% share. Say it, then immediately stress it: what happens if share lands at half that?";
+    } else {
+      v.className = "verdict";
+      v.textContent = "Loss of " + inr(Math.abs(profit)) + " at " + share + "% share. Do not stop here. Say: \u201cbreakeven needs " + fmt(beShare) + "% share \u2014 can a new entrant take that, and in how many years?\u201d That sentence is the case.";
+    }
+  }
+  A.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.addEventListener("input", runA); }
+  });
+  if(document.getElementById("mSize")) runA();
+
+  // ---------- CONSOLE B: M&A synergy stress test ----------
+  var B = ["sCF","sSyn","sReal","sHurdle","sGrowth","sAsk"];
+  function runB(){
+    var cf     = +document.getElementById("sCF").value;      // $ millions
+    var syn    = +document.getElementById("sSyn").value;     // $ millions
+    var real   = +document.getElementById("sReal").value;    // percent realised
+    var hurdle = +document.getElementById("sHurdle").value;  // percent
+    var growth = +document.getElementById("sGrowth").value;  // percent
+    var ask    = +document.getElementById("sAsk").value;     // $ millions
+
+    document.getElementById("vsCF").textContent     = "$" + cf + "M";
+    document.getElementById("vsSyn").textContent    = "$" + syn + "M";
+    document.getElementById("vsReal").textContent   = real + "%";
+    document.getElementById("vsHurdle").textContent = hurdle + "%";
+    document.getElementById("vsGrowth").textContent = growth + "%";
+    document.getElementById("vsAsk").textContent    = "$" + ask.toLocaleString("en-US") + "M";
+
+    var spread = (hurdle - growth) / 100;
+    var stand  = spread > 0 ? cf / spread : Infinity;
+    var synCF  = syn * (real/100);
+    var synVal = spread > 0 ? synCF / spread : Infinity;
+    var total  = stand + synVal;
+    var head   = total - ask;
+    var synPct = total > 0 && isFinite(total) ? (synVal / total) * 100 : 0;
+    // the real fragility test: does the deal survive an 80% synergy delivery?
+    var head80 = spread > 0 ? (stand + (synCF * 0.8) / spread) - ask : -1;
+
+    document.getElementById("oStand").textContent = isFinite(stand) ? inr(stand) : "infinite";
+    document.getElementById("oSynV").textContent  = isFinite(synVal) ? inr(synVal) : "infinite";
+    document.getElementById("oTotal").textContent = isFinite(total) ? inr(total) : "infinite";
+    document.getElementById("oHead").textContent  = isFinite(head) ? inr(head) : "--";
+    document.getElementById("oHead").className    = head >= 0 ? "g" : "r";
+
+    var v = document.getElementById("vB");
+    if(spread <= 0){
+      v.className = "verdict r";
+      v.textContent = "Growth is at or above the hurdle rate, so the perpetuity formula breaks — it implies infinite value. Flag it out loud: this shortcut only holds when growth sits below the discount rate.";
+    } else if(head < 0){
+      v.className = "verdict r";
+      v.textContent = "Value comes to " + inr(total) + " against an ask of " + inr(ask) + ". Walk away, or negotiate the price down by at least " + inr(Math.abs(head)) + ".";
+    } else if(head80 <= 0){
+      v.className = "verdict";
+      v.textContent = "Clears by " + inr(head) + " — but " + fmt(synPct) + "% of the value is synergies, and at 80% delivery the whole cushion is gone. This is a fragile deal. Recommend proceeding conditional on a synergy plan with milestones, and say that before the interviewer asks.";
+    } else {
+      v.className = "verdict g";
+      v.textContent = "Positive by " + inr(head) + ", and only " + fmt(synPct) + "% of value depends on synergies. The target stands up on its own. Proceed, then move to soft fit.";
+    }
+  }
+  B.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.addEventListener("input", runB); }
+  });
+  if(document.getElementById("sCF")) runB();
+})();
+</script>
+
+<script src="assets/js/curriculum.js"></script>
+<script src="assets/js/progress.js"></script>
+<script src="assets/js/dayhook.js"></script>
+
+</body>
+</html>

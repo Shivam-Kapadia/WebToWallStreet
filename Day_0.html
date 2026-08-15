@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071739">
+<title>Case Field Manual — the foundations behind every consulting case</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#050E24;
+  --deep:#0A1B3F;
+  --panel:#0F2551;
+  --panel2:#14346B;
+  --grid:#1B3F7A;
+  --cyan:#5CE1E6;
+  --blue:#3D7BF0;
+  --red:#E8412F;
+  --green:#4FBF52;
+  --amber:#F2C46A;
+  --ink:#D8E6FF;
+  --dim:#7D9BD1;
+  --display:'Press Start 2P',monospace;
+  --hud:'VT323',monospace;
+  --body:'Space Grotesk',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:rgba(92,225,230,.25)}
+html{-webkit-text-size-adjust:100%}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{overflow-x:hidden}
+body{
+  margin:0;
+  background:var(--void);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.72;
+  -webkit-font-smoothing:antialiased;
+}
+/* ---- grid map atmosphere ---- */
+.map-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(rgba(27,63,122,.55) 1px,transparent 1px) 0 0/44px 44px,
+    linear-gradient(90deg,rgba(27,63,122,.55) 1px,transparent 1px) 0 0/44px 44px,
+    linear-gradient(rgba(27,63,122,.28) 1px,transparent 1px) 0 0/11px 11px,
+    linear-gradient(90deg,rgba(27,63,122,.28) 1px,transparent 1px) 0 0/11px 11px,
+    radial-gradient(ellipse at 20% 0%,#0E2A5C 0%,#050E24 60%);
+  opacity:.9;
+}
+.map-bg::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,.22) 0 2px,transparent 2px 4px);
+  mix-blend-mode:multiply;
+}
+.wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px 120px}
+
+/* ---- pixel frame utility ---- */
+.px{
+  background:var(--panel);
+  border:3px solid var(--cyan);
+  box-shadow:
+    0 0 0 3px var(--deep),
+    0 0 0 6px #071539,
+    6px 6px 0 6px rgba(0,0,0,.45);
+}
+.px-flat{
+  background:var(--panel);
+  border:3px solid var(--grid);
+  box-shadow:4px 4px 0 0 rgba(0,0,0,.4);
+}
+
+/* ---- top bar ---- */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:#071739;
+  border-bottom:3px solid var(--grid);
+  padding:10px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.badge{
+  font-family:var(--display);font-size:9px;color:var(--void);
+  background:var(--cyan);padding:7px 9px;letter-spacing:.5px;
+}
+.topbar .tick{font-family:var(--hud);font-size:20px;color:var(--dim);letter-spacing:1px}
+.topbar .tick b{color:var(--green);font-weight:400}
+
+/* ---- hero ---- */
+header.hero{padding:64px 0 40px;text-align:center;position:relative}
+.hero .plate{
+  display:inline-block;padding:22px 30px;margin-bottom:26px;
+}
+.hero h1{
+  font-family:var(--display);
+  font-size:clamp(15px,3.4vw,30px);
+  line-height:1.5;margin:0;color:#fff;
+  text-shadow:0 3px 0 var(--blue),0 6px 0 rgba(0,0,0,.5);
+  letter-spacing:1px;
+}
+.hero h1 em{color:var(--amber);font-style:normal}
+.hero .sub{
+  font-family:var(--hud);font-size:24px;color:var(--cyan);
+  letter-spacing:2px;margin:14px 0 0;text-transform:uppercase;
+}
+.hero .lede{max-width:640px;margin:26px auto 0;color:var(--dim);font-size:17px}
+.hero .lede b{color:var(--ink);font-weight:500}
+
+/* ---- marker map / TOC ---- */
+.tracker{margin:44px 0 0;padding:26px 22px 62px;scroll-margin-top:84px}
+.tracker h2{
+  font-family:var(--display);font-size:11px;color:var(--amber);
+  margin:0 0 4px;letter-spacing:1px;
+}
+.tracker .hint{font-family:var(--hud);font-size:19px;color:var(--dim);margin:0 0 22px;letter-spacing:1px}
+.markers{
+  display:grid;gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
+}
+.marker{
+  display:flex;gap:12px;align-items:flex-start;
+  text-decoration:none;color:var(--ink);
+  background:#0B2049;border:2px solid var(--grid);
+  padding:12px 13px;transition:transform .12s steps(2),background .12s,border-color .12s;
+}
+.marker:hover,.marker:focus-visible{
+  background:#153B7C;border-color:var(--cyan);transform:translate(-2px,-2px);
+  box-shadow:4px 4px 0 0 rgba(0,0,0,.5);outline:none;
+}
+.pin{
+  flex:none;width:30px;height:30px;margin-top:2px;position:relative;
+  display:grid;place-items:center;
+  background:var(--green);
+  clip-path:polygon(22% 0,78% 0,100% 22%,100% 78%,78% 100%,22% 100%,0 78%,0 22%);
+}
+.pin svg{width:20px;height:20px;display:block}
+.pin .bug{fill:#06122E}
+.marker:nth-child(3n+2) .pin{background:var(--red)}
+.marker:nth-child(3n+2) .pin .bug{fill:#0B0B14}
+.marker:nth-child(5n+3) .pin{background:var(--amber)}
+.pin .no{
+  position:absolute;bottom:-7px;right:-6px;
+  font-family:var(--display);font-size:7px;color:var(--cyan);
+  background:#071739;border:1px solid var(--grid);padding:2px 3px;line-height:1;
+}
+.m-t{font-family:var(--body);font-weight:700;font-size:15px;line-height:1.3;display:block}
+.m-s{font-family:var(--hud);font-size:17px;color:var(--dim);line-height:1.25;display:block;margin-top:3px}
+
+/* ---- web radar + strands ---- */
+.tracker{position:relative;overflow:hidden}
+.radar{
+  position:absolute;right:-26px;bottom:-26px;width:190px;height:190px;
+  opacity:.34;pointer-events:none;
+}
+.radar .strand{stroke:var(--cyan);fill:none;stroke-width:1.4}
+.radar .ring{stroke:var(--blue);fill:none;stroke-width:1.4}
+.radar .blip{fill:var(--red)}
+.radar .sweep{
+  transform-origin:60px 60px;
+  animation:sweep 5.5s steps(16,end) infinite;
+}
+.radar .sweep line{stroke:var(--green);stroke-width:2}
+.radar .sweep polygon{fill:var(--green);opacity:.16}
+@keyframes sweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.radar .blip{animation:pulse 2.2s steps(2,end) infinite}
+.radar .blip:nth-of-type(2){animation-delay:1.1s}
+@keyframes pulse{0%,49%{opacity:1}50%,100%{opacity:.25}}
+@media(max-width:700px){.radar{display:none}}
+
+.webcorner{position:absolute;width:78px;height:78px;pointer-events:none;opacity:.5}
+.webcorner path{stroke:var(--grid);fill:none;stroke-width:1.3}
+.wc-tl{top:0;left:0}
+@media(max-width:640px){.webcorner{width:52px;height:52px;opacity:.35}}
+
+
+/* ---- issue tree diagram ---- */
+.tree{margin:26px 0;padding:20px 14px;background:#08183A;border:3px solid var(--grid)}
+.tnode{
+  font-family:var(--hud);font-size:20px;line-height:1.25;letter-spacing:.5px;
+  text-align:center;padding:11px 10px;border:2px solid var(--cyan);
+  background:#0B2049;color:var(--ink);
+}
+.tnode span{display:block;font-size:17px;color:var(--dim)}
+.tnode.t0{
+  background:var(--cyan);color:#06122E;border-color:var(--cyan);
+  max-width:300px;margin:0 auto 8px;font-size:21px;
+}
+.tnode.t1{background:#12305F;border-color:var(--green);margin-bottom:8px}
+.tnode.t1.red{border-color:var(--red)}
+.tnode.t2{margin-bottom:8px;border-color:var(--grid)}
+.tnode.t2.red{border-left:5px solid var(--red)}
+.tnode.t2:not(.red){border-left:5px solid var(--green)}
+.trow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tbranch{position:relative;padding-top:16px}
+.tbranch::before{
+  content:"";position:absolute;top:0;left:50%;width:2px;height:14px;background:var(--grid);
+}
+@media(max-width:640px){
+  .tree{padding:14px 10px}
+  .trow{grid-template-columns:1fr;gap:10px}
+  .tnode{font-size:18px;padding:10px 8px}
+  .tnode span{font-size:16px}
+  .tnode.t0{font-size:19px}
+}
+
+/* ---- emblem ---- */
+.emblem{width:34px;height:34px;flex:none;display:block}
+.emblem .e-plate{fill:#06122E}
+.emblem .e-edge{fill:none;stroke:var(--cyan);stroke-width:2}
+.emblem .e-web line,.emblem .e-web polygon{stroke:var(--blue);fill:none;stroke-width:1}
+.emblem .e-bug rect{fill:var(--red)}
+.emblem-lg{
+  width:86px;height:86px;margin:14px auto;
+}
+.emblem-lg .e-edge{stroke:var(--amber);stroke-width:2.2}
+.emblem-lg .e-web line,.emblem-lg .e-web polygon{stroke:var(--cyan);opacity:.75}
+.hero h1{margin:0}
+
+/* ---- corner field-unit sprite ---- */
+.agent{
+  position:absolute;left:14px;bottom:12px;
+  display:flex;align-items:center;gap:9px;
+  opacity:.75;pointer-events:none;
+}
+.agent svg{width:34px;height:41px;display:block}
+.agent .a-body rect{fill:var(--blue)}
+.agent .a-head rect{fill:#B9CCF0}
+.agent .a-visor rect{fill:var(--red)}
+.agent .a-strap rect{fill:#06122E}
+.agent .a-tag{
+  font-family:var(--display);font-size:7px;color:var(--dim);letter-spacing:1px;
+}
+@media(max-width:900px){.agent{display:none}}
+.strandline{
+  display:block;width:100%;height:26px;margin:56px 0 0;opacity:.5;
+}
+.strandline path{stroke:var(--grid);fill:none;stroke-width:2}
+.strandline circle{fill:var(--blue)}
+.hero .plate{position:relative}
+.corner{position:absolute;width:34px;height:34px;opacity:.85;pointer-events:none}
+.corner path{stroke:var(--cyan);fill:none;stroke-width:1.6}
+.corner.tl{top:-3px;left:-3px}
+.corner.tr{top:-3px;right:-3px;transform:scaleX(-1)}
+.corner.bl{bottom:-3px;left:-3px;transform:scaleY(-1)}
+.corner.br{bottom:-3px;right:-3px;transform:scale(-1)}
+
+/* ---- sense check ---- */
+.sense{
+  display:flex;gap:14px;align-items:flex-start;
+  background:#0B2049;border:2px solid var(--grid);border-left:6px solid var(--cyan);
+  padding:15px 17px;margin:24px 0;
+}
+.sense .icon{flex:none;width:30px;height:30px;margin-top:2px}
+.sense .icon .bug{fill:var(--cyan)}
+.sense .txt{margin:0}
+.sense .lab{
+  font-family:var(--hud);font-size:20px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--cyan);display:block;margin-bottom:2px;
+}
+
+/* ---- sections ---- */
+section.mod{margin:70px 0 0;scroll-margin-top:84px}
+.mod-head{display:flex;gap:16px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.mod-num{
+  font-family:var(--display);font-size:12px;color:#06122E;background:var(--cyan);
+  padding:10px 11px;flex:none;
+}
+.mod h2{
+  font-family:var(--display);font-size:clamp(13px,2vw,17px);color:#fff;
+  margin:0;line-height:1.5;letter-spacing:.5px;
+}
+.mod .tagline{
+  font-family:var(--hud);font-size:21px;color:var(--amber);
+  letter-spacing:1px;margin:0 0 22px;text-transform:uppercase;
+}
+.mod p{margin:0 0 18px}
+.mod h3{
+  font-family:var(--body);font-weight:700;font-size:19px;color:var(--cyan);
+  margin:32px 0 10px;letter-spacing:.2px;
+}
+.mod h4{
+  font-family:var(--hud);font-size:22px;color:var(--amber);letter-spacing:1px;
+  margin:24px 0 8px;text-transform:uppercase;font-weight:400;
+}
+.mod ul,.mod ol{margin:0 0 18px;padding-left:22px}
+.mod li{margin-bottom:9px}
+.mod li::marker{color:var(--cyan)}
+strong{color:#fff;font-weight:700}
+em.hl{font-style:normal;color:var(--amber);font-weight:500}
+code{
+  font-family:var(--hud);font-size:19px;background:#08183A;color:var(--cyan);
+  padding:1px 6px;border:1px solid var(--grid);
+}
+
+/* ---- special blocks ---- */
+.formula{
+  font-family:var(--display);font-size:clamp(9px,1.5vw,13px);line-height:2.1;
+  text-align:center;color:var(--amber);
+  background:#08183A;border:3px dashed var(--blue);
+  padding:24px 16px;margin:22px 0;
+}
+.callout{
+  background:#0B2049;border-left:6px solid var(--red);
+  padding:16px 18px;margin:22px 0;
+}
+.callout.good{border-left-color:var(--green)}
+.callout.say{border-left-color:var(--amber)}
+.callout .lab{
+  font-family:var(--hud);font-size:20px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--red);display:block;margin-bottom:4px;
+}
+.callout.good .lab{color:var(--green)}
+.callout.say .lab{color:var(--amber)}
+.callout p:last-child{margin-bottom:0}
+.callout .quote{color:#fff;font-style:italic}
+
+table{
+  width:100%;border-collapse:collapse;margin:22px 0;
+  font-family:var(--hud);font-size:20px;
+  background:#08183A;border:3px solid var(--grid);
+}
+th{
+  background:var(--panel2);color:var(--cyan);text-align:left;
+  padding:9px 12px;letter-spacing:1px;text-transform:uppercase;font-weight:400;
+  border-bottom:2px solid var(--grid);
+}
+td{padding:9px 12px;border-bottom:1px solid #14305F;color:var(--ink)}
+tr:last-child td{border-bottom:none}
+td.n{text-align:right;color:var(--amber)}
+tr.total td{background:#12305F;color:#fff}
+tr.total td.n{color:var(--green)}
+
+.split{display:grid;gap:16px;grid-template-columns:1fr 1fr;margin:22px 0}
+@media(max-width:720px){.split{grid-template-columns:1fr}}
+.card{background:#0B2049;border:2px solid var(--grid);padding:16px 18px}
+.card h5{
+  font-family:var(--hud);font-size:21px;margin:0 0 8px;letter-spacing:1px;
+  text-transform:uppercase;font-weight:400;color:var(--cyan);
+}
+.card.red h5{color:var(--red)}
+.card.green h5{color:var(--green)}
+.card p{margin:0;font-size:16px;color:var(--dim)}
+.card p b{color:var(--ink)}
+
+/* ---- interactive consoles ---- */
+.console{
+  margin:26px 0;padding:20px;background:#071739;border:3px solid var(--blue);
+  box-shadow:5px 5px 0 0 rgba(0,0,0,.45);
+}
+.console .ctitle{
+  font-family:var(--display);font-size:10px;color:var(--amber);
+  margin:0 0 14px;letter-spacing:1px;
+}
+.ctrl{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.ctrl label{font-family:var(--hud);font-size:20px;color:var(--dim);min-width:210px;letter-spacing:1px}
+.ctrl input[type=range]{flex:1;min-width:150px;accent-color:var(--cyan);height:22px}
+.ctrl .val{
+  font-family:var(--hud);font-size:21px;color:var(--cyan);min-width:104px;text-align:right;
+}
+.readout{
+  display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  margin-top:16px;
+}
+.rd{background:#0B2049;border:2px solid var(--grid);padding:12px}
+.rd .k{font-family:var(--hud);font-size:18px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.rd .v{font-family:var(--display);font-size:13px;color:var(--green);margin-top:7px;line-height:1.4}
+.rd .v.bad{color:var(--red)}
+.rd .v.warn{color:var(--amber)}
+.verdict{
+  margin-top:14px;padding:12px 14px;background:#0B2049;border-left:6px solid var(--cyan);
+  font-family:var(--hud);font-size:21px;color:var(--ink);letter-spacing:.5px;
+}
+
+/* ---- checkpoint ---- */
+.checkpoint{
+  margin:30px 0 0;padding:18px 20px;background:#0B2049;
+  border:2px dashed var(--green);
+}
+.checkpoint .lab{
+  font-family:var(--display);font-size:9px;color:var(--green);letter-spacing:1px;
+  display:block;margin-bottom:10px;
+}
+.checkpoint ul{margin:0;padding-left:20px}
+.checkpoint li{font-family:var(--hud);font-size:21px;line-height:1.45;color:var(--ink)}
+
+/* ---- footer ---- */
+footer{
+  margin-top:80px;padding:30px 22px;text-align:center;
+}
+footer .f1{font-family:var(--display);font-size:11px;color:var(--cyan);line-height:2}
+footer .f2{font-family:var(--hud);font-size:20px;color:var(--dim);letter-spacing:1px;margin-top:12px}
+.totop{
+  display:inline-block;margin-top:18px;text-decoration:none;
+  font-family:var(--display);font-size:9px;color:#06122E;background:var(--amber);
+  padding:11px 14px;
+}
+.totop:hover{background:var(--cyan)}
+
+/* ---- table scroll container ---- */
+.tscroll{
+  margin:22px 0;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+}
+.tscroll table{margin:0;min-width:100%}
+.tscroll::-webkit-scrollbar{height:9px}
+.tscroll::-webkit-scrollbar-track{background:#08183A}
+.tscroll::-webkit-scrollbar-thumb{background:var(--grid);border:2px solid #08183A}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ============ TABLET ============ */
+@media(max-width:900px){
+  .wrap{padding:0 16px 90px}
+  .markers{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+}
+
+/* ============ PHONE ============ */
+@media(max-width:640px){
+  body{font-size:16px;line-height:1.68}
+  .wrap{padding:0 12px 70px}
+
+  /* top bar: compact, no wrapping tail */
+  .topbar{padding:8px 12px;gap:9px}
+  .badge{font-size:7px;padding:6px 7px}
+  .emblem{width:26px;height:26px}
+  .emblem-lg{width:60px;height:60px;margin:10px auto}
+  .topbar .tick{font-size:17px}
+  .topbar .tick .hide-sm{display:none}
+
+  /* hero */
+  header.hero{padding:36px 0 26px}
+  .hero .plate{padding:18px 16px;margin-bottom:20px}
+  .hero h1{font-size:14px;line-height:1.65;text-shadow:0 2px 0 var(--blue),0 4px 0 rgba(0,0,0,.5)}
+  .hero .sub{font-size:20px;letter-spacing:1px;margin-top:12px}
+  .hero .lede{font-size:16px;margin-top:20px}
+  .corner{width:24px;height:24px}
+
+  /* pixel frames: thinner outlines so nothing bleeds off-screen */
+  .px{box-shadow:0 0 0 2px var(--deep),0 0 0 4px #071539,4px 4px 0 4px rgba(0,0,0,.45)}
+  .px-flat{box-shadow:3px 3px 0 0 rgba(0,0,0,.4)}
+
+  /* sighting map: single column, bigger tap targets */
+  .tracker{padding:20px 14px 24px}
+  .tracker h2{font-size:10px}
+  .tracker .hint{font-size:17px;margin-bottom:16px}
+  .markers{grid-template-columns:1fr;gap:9px}
+  .marker{padding:13px 12px;gap:11px}
+  .marker:hover{transform:none;box-shadow:none}
+  .marker:active{background:#153B7C;border-color:var(--cyan)}
+  .pin{width:27px;height:27px}
+  .pin svg{width:18px;height:18px}
+  .pin .no{font-size:6px;bottom:-6px;right:-5px}
+  .m-t{font-size:15px}
+  .m-s{font-size:16px}
+
+  /* modules */
+  section.mod{margin:46px 0 0;scroll-margin-top:64px}
+  .mod-head{gap:11px;margin-bottom:5px}
+  .mod-num{font-size:10px;padding:8px 9px}
+  .mod h2{font-size:11px;line-height:1.6}
+  .mod .tagline{font-size:18px;margin-bottom:16px;line-height:1.4}
+  .mod h3{font-size:17px;margin:26px 0 9px}
+  .mod h4{font-size:19px;margin:20px 0 7px}
+  .mod ul,.mod ol{padding-left:19px}
+  code{font-size:17px}
+
+  /* formulas: pixel face is too wide on phones — switch to the HUD face and let it wrap */
+  .formula{
+    font-family:var(--hud);
+    font-size:22px!important;
+    line-height:1.4;
+    letter-spacing:1px;
+    padding:16px 12px;
+    border-width:2px;
+    overflow-wrap:break-word;
+  }
+
+  /* tables */
+  .tscroll{margin:18px 0}
+  table{font-size:18px;border-width:2px}
+  th,td{padding:8px 10px}
+  th{font-size:17px}
+
+  /* cards & callouts */
+  .split{gap:11px;margin:18px 0}
+  .card{padding:14px 14px}
+  .card h5{font-size:19px}
+  .card p{font-size:15px}
+  .callout{padding:13px 14px;border-left-width:5px}
+  .callout .lab{font-size:18px}
+  .sense{padding:13px 14px;gap:11px;border-left-width:5px}
+  .sense .icon{width:26px;height:26px}
+  .sense .lab{font-size:18px}
+
+  /* consoles: stacked controls, touch-sized sliders */
+  .console{padding:15px 13px;border-width:2px;box-shadow:3px 3px 0 0 rgba(0,0,0,.45)}
+  .console .ctitle{font-size:9px;line-height:1.6;margin-bottom:12px}
+  .ctrl{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:4px 10px;
+    margin-bottom:15px;
+  }
+  .ctrl label{grid-column:1;min-width:0;font-size:18px;line-height:1.3}
+  .ctrl .val{grid-column:2;font-size:20px;min-width:78px}
+  .ctrl input[type=range]{grid-column:1 / -1;width:100%;min-width:0;height:34px}
+  .readout{grid-template-columns:1fr 1fr;gap:8px}
+  .rd{padding:10px}
+  .rd .k{font-size:16px;line-height:1.25}
+  .rd .v{font-size:11px;margin-top:5px}
+  .verdict{font-size:18px;padding:11px 12px;line-height:1.45;border-left-width:5px}
+
+  /* checkpoints */
+  .checkpoint{padding:15px 14px;margin-top:24px}
+  .checkpoint .lab{font-size:8px;line-height:1.6}
+  .checkpoint li{font-size:18px;line-height:1.4}
+
+  /* dividers & footer */
+  .strandline{margin-top:38px;height:20px}
+  footer{margin-top:56px;padding:24px 12px}
+  footer .f1{font-size:9px;line-height:2.1}
+  footer .f2{font-size:18px}
+  .totop{font-size:8px;padding:12px 14px}
+}
+
+/* ============ NARROW PHONE ============ */
+@media(max-width:380px){
+  .hero h1{font-size:12px}
+  .mod h2{font-size:10px}
+  .formula{font-size:20px!important}
+  .readout{grid-template-columns:1fr}
+  .rd .v{font-size:12px}
+}
+
+/* ---- clarifier drill ---- */
+.drow{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  background:#0B2049;border:2px solid var(--grid);padding:11px 13px;margin-bottom:9px}
+.drow .dq{font-family:var(--hud);font-size:20px;color:var(--ink);letter-spacing:.5px;flex:1;min-width:190px;line-height:1.3}
+.drow .dbtns{display:flex;gap:8px;flex:none}
+.drow button{font-family:var(--display);font-size:8px;letter-spacing:.5px;cursor:pointer;
+  background:#12305F;color:var(--ink);border:2px solid var(--grid);padding:9px 10px;transition:background .12s}
+.drow button:hover{background:#1B4A96;border-color:var(--cyan)}
+.drow.answered button{cursor:default;opacity:.5}
+.drow.answered button.ok{background:var(--green);color:#06122E;border-color:var(--green);opacity:1}
+.drow.answered button.no{background:var(--red);color:#fff;border-color:var(--red);opacity:1}
+@media(max-width:640px){
+  .drow{flex-direction:column;align-items:stretch;gap:9px}
+  .drow .dq{font-size:18px}
+  .drow .dbtns{justify-content:stretch}
+  .drow button{flex:1;padding:12px 8px;font-size:8px}
+}
+</style>
+</head>
+<body>
+<div class="map-bg"></div>
+
+<div class="topbar">
+  <svg class="emblem" viewBox="0 0 40 40" aria-hidden="true">
+  <polygon class="e-plate" points="11,1 29,1 39,11 39,29 29,39 11,39 1,29 1,11"/>
+  <polygon class="e-edge" points="11,1 29,1 39,11 39,29 29,39 11,39 1,29 1,11"/>
+  <g class="e-web">
+    <line x1="20" y1="20" x2="20" y2="4"/><line x1="20" y1="20" x2="31" y2="9"/>
+    <line x1="20" y1="20" x2="36" y2="20"/><line x1="20" y1="20" x2="31" y2="31"/>
+    <line x1="20" y1="20" x2="20" y2="36"/><line x1="20" y1="20" x2="9" y2="31"/>
+    <line x1="20" y1="20" x2="4" y2="20"/><line x1="20" y1="20" x2="9" y2="9"/>
+    <polygon points="20,10 27,13 30,20 27,27 20,30 13,27 10,20 13,13"/>
+  </g>
+  <g class="e-bug">
+    <rect x="18" y="18" width="4" height="5"/><rect x="18" y="15" width="4" height="2"/>
+    <rect x="17" y="13" width="2" height="1"/><rect x="21" y="13" width="2" height="1"/>
+    <rect x="13" y="15" width="4" height="1"/><rect x="11" y="13" width="2" height="2"/>
+    <rect x="23" y="15" width="4" height="1"/><rect x="27" y="13" width="2" height="2"/>
+    <rect x="13" y="19" width="4" height="1"/><rect x="11" y="20" width="2" height="2"/>
+    <rect x="23" y="19" width="4" height="1"/><rect x="27" y="20" width="2" height="2"/>
+    <rect x="15" y="23" width="3" height="1"/><rect x="13" y="24" width="2" height="2"/>
+    <rect x="22" y="23" width="3" height="1"/><rect x="25" y="24" width="2" height="2"/>
+  </g>
+</svg>
+  <span class="badge">CASE FIELD MANUAL</span>
+  <span class="tick">SIGHTINGS: <b>14</b> &nbsp;//&nbsp; DAY <b>0</b><span class="hide-sm"> &nbsp;//&nbsp; FOUNDATIONS &mdash; START HERE</span></span>
+</div>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="plate px"><svg class="corner tl" aria-hidden="true" viewBox="0 0 40 40"><path d="M0 14 L14 0 M0 26 L26 0 M0 38 L38 0 M2 2 L2 12 M2 2 L12 2"/></svg><svg class="corner tr" aria-hidden="true" viewBox="0 0 40 40"><path d="M0 14 L14 0 M0 26 L26 0 M0 38 L38 0 M2 2 L2 12 M2 2 L12 2"/></svg><svg class="corner bl" aria-hidden="true" viewBox="0 0 40 40"><path d="M0 14 L14 0 M0 26 L26 0 M0 38 L38 0 M2 2 L2 12 M2 2 L12 2"/></svg><svg class="corner br" aria-hidden="true" viewBox="0 0 40 40"><path d="M0 14 L14 0 M0 26 L26 0 M0 38 L38 0 M2 2 L2 12 M2 2 L12 2"/></svg>
+    <h1>HOW A CASE</h1>
+    <svg class="emblem emblem-lg" viewBox="0 0 40 40" aria-hidden="true">
+  <polygon class="e-plate" points="11,1 29,1 39,11 39,29 29,39 11,39 1,29 1,11"/>
+  <polygon class="e-edge" points="11,1 29,1 39,11 39,29 29,39 11,39 1,29 1,11"/>
+  <g class="e-web">
+    <line x1="20" y1="20" x2="20" y2="4"/><line x1="20" y1="20" x2="31" y2="9"/>
+    <line x1="20" y1="20" x2="36" y2="20"/><line x1="20" y1="20" x2="31" y2="31"/>
+    <line x1="20" y1="20" x2="20" y2="36"/><line x1="20" y1="20" x2="9" y2="31"/>
+    <line x1="20" y1="20" x2="4" y2="20"/><line x1="20" y1="20" x2="9" y2="9"/>
+    <polygon points="20,10 27,13 30,20 27,27 20,30 13,27 10,20 13,13"/>
+  </g>
+  <g class="e-bug">
+    <rect x="18" y="18" width="4" height="5"/><rect x="18" y="15" width="4" height="2"/>
+    <rect x="17" y="13" width="2" height="1"/><rect x="21" y="13" width="2" height="1"/>
+    <rect x="13" y="15" width="4" height="1"/><rect x="11" y="13" width="2" height="2"/>
+    <rect x="23" y="15" width="4" height="1"/><rect x="27" y="13" width="2" height="2"/>
+    <rect x="13" y="19" width="4" height="1"/><rect x="11" y="20" width="2" height="2"/>
+    <rect x="23" y="19" width="4" height="1"/><rect x="27" y="20" width="2" height="2"/>
+    <rect x="15" y="23" width="3" height="1"/><rect x="13" y="24" width="2" height="2"/>
+    <rect x="22" y="23" width="3" height="1"/><rect x="25" y="24" width="2" height="2"/>
+  </g>
+</svg>
+    <h1>ACTUALLY <em>WORKS</em></h1>
+    <p class="sub">14 sightings &middot; zero jargon &middot; day 0</p>
+  </div>
+  <p class="lede">Before the economics, before the frameworks, there's the shape of the thing itself &mdash; what consulting is, what a case interview is testing, and the four stages every single case runs through. <b>Assumes you know nothing.</b> Every term is explained the first time it appears.</p>
+</header>
+
+<nav class="tracker px-flat" id="map" aria-label="Concept index">
+  <h2>SIGHTING MAP</h2>
+  <p class="hint">14 sightings logged. Tap any marker to jump &mdash; work top to bottom the first time, each strand anchors the next.</p>
+  <svg class="webcorner wc-tl" aria-hidden="true" viewBox="0 0 60 60"><g>
+    <path d="M0 0 L60 0 M0 0 L0 60 M0 0 L42 42"/>
+    <path d="M0 14 L14 0 M0 28 L28 0 M0 44 L44 0 M0 58 L58 0"/>
+  </g></svg>
+  <svg class="radar" viewBox="0 0 120 120" aria-hidden="true">
+    <g class="strand">
+      <line x1="60" y1="60" x2="60" y2="4"/><line x1="60" y1="60" x2="100" y2="20"/>
+      <line x1="60" y1="60" x2="116" y2="60"/><line x1="60" y1="60" x2="100" y2="100"/>
+      <line x1="60" y1="60" x2="60" y2="116"/><line x1="60" y1="60" x2="20" y2="100"/>
+      <line x1="60" y1="60" x2="4" y2="60"/><line x1="60" y1="60" x2="20" y2="20"/>
+    </g>
+    <g class="ring">
+      <polygon points="60,42 73,47 78,60 73,73 60,78 47,73 42,60 47,47"/>
+      <polygon points="60,26 84,36 94,60 84,84 60,94 36,84 26,60 36,36"/>
+      <polygon points="60,10 95,25 110,60 95,95 60,110 25,95 10,60 25,25"/>
+    </g>
+    <g class="sweep"><polygon points="60,60 116,60 106,30"/><line x1="60" y1="60" x2="116" y2="60"/></g>
+    <circle class="blip" cx="84" cy="36" r="3.5"/><circle class="blip" cx="36" cy="84" r="3"/>
+  </svg>
+  <div class="agent" aria-hidden="true">
+  <svg viewBox="0 0 20 24">
+    <g class="a-body"><rect x="6" y="10" width="8" height="7"/><rect x="4" y="11" width="2" height="5"/><rect x="14" y="11" width="2" height="5"/>
+      <rect x="6" y="17" width="3" height="6"/><rect x="11" y="17" width="3" height="6"/>
+      <rect x="3" y="16" width="2" height="3"/><rect x="15" y="16" width="2" height="3"/></g>
+    <g class="a-head"><rect x="6" y="3" width="8" height="7"/><rect x="7" y="2" width="6" height="1"/></g>
+    <g class="a-visor"><rect x="6" y="5" width="3" height="3"/><rect x="6" y="5" width="3" height="3"/><rect x="11" y="5" width="3" height="3"/></g>
+    <g class="a-strap"><rect x="9" y="5" width="2" height="1"/><rect x="5" y="6" width="1" height="2"/><rect x="14" y="6" width="1" height="2"/></g>
+  </svg>
+  <span class="a-tag">FIELD UNIT</span>
+</div>
+  <div class="markers">
+    <a class="marker" href="#m01"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">01</span></span><span><span class="m-t">What Consulting Actually Is</span><span class="m-s">The job, in plain words</span></span></a>
+    <a class="marker" href="#m02"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">02</span></span><span><span class="m-t">What These Clubs Do</span><span class="m-s">NOBE, CUBE, IBC, OTCR</span></span></a>
+    <a class="marker" href="#m03"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">03</span></span><span><span class="m-t">What A Case Interview Is</span><span class="m-s">And why it exists at all</span></span></a>
+    <a class="marker" href="#m04"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">04</span></span><span><span class="m-t">Structure Beats The Answer</span><span class="m-s">The reframe everything rests on</span></span></a>
+    <a class="marker" href="#m05"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">05</span></span><span><span class="m-t">The Four-Stage Skeleton</span><span class="m-s">The shape of every single case</span></span></a>
+    <a class="marker" href="#m06"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">06</span></span><span><span class="m-t">Stage 1 &mdash; Clarify</span><span class="m-s">Scoping, not guessing</span></span></a>
+    <a class="marker" href="#m07"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">07</span></span><span><span class="m-t">Stage 2 &mdash; Structure</span><span class="m-s">Building the map out loud</span></span></a>
+    <a class="marker" href="#m08"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">08</span></span><span><span class="m-t">Stage 3 &mdash; Analyse</span><span class="m-s">Walking the map, branch by branch</span></span></a>
+    <a class="marker" href="#m09"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">09</span></span><span><span class="m-t">Stage 4 &mdash; Conclude</span><span class="m-s">Landing it like a decision</span></span></a>
+    <a class="marker" href="#m10"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">10</span></span><span><span class="m-t">MECE</span><span class="m-s">No overlaps, no gaps</span></span></a>
+    <a class="marker" href="#m11"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">11</span></span><span><span class="m-t">Issue Trees</span><span class="m-s">How to split anything</span></span></a>
+    <a class="marker" href="#m12"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">12</span></span><span><span class="m-t">Sizing A Market</span><span class="m-s">Guessing a number properly</span></span></a>
+    <a class="marker" href="#m13"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">13</span></span><span><span class="m-t">Signposting</span><span class="m-s">Saying where you are</span></span></a>
+    <a class="marker" href="#m14"><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bug"><rect x="9" y="12" width="6" height="1"/><rect x="8" y="13" width="8" height="4"/><rect x="9" y="17" width="6" height="2"/><rect x="10" y="19" width="4" height="1"/><rect x="9" y="9" width="6" height="3"/><rect x="10" y="7" width="4" height="2"/><rect x="9" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="6" y="8" width="3" height="1"/><rect x="4" y="7" width="2" height="1"/><rect x="3" y="5" width="1" height="2"/><rect x="5" y="10" width="4" height="1"/><rect x="2" y="9" width="3" height="1"/><rect x="1" y="7" width="1" height="2"/><rect x="5" y="13" width="3" height="1"/><rect x="2" y="13" width="3" height="1"/><rect x="1" y="14" width="1" height="2"/><rect x="6" y="16" width="3" height="1"/><rect x="4" y="17" width="2" height="1"/><rect x="3" y="18" width="1" height="2"/><rect x="15" y="8" width="3" height="1"/><rect x="18" y="7" width="2" height="1"/><rect x="20" y="5" width="1" height="2"/><rect x="15" y="10" width="4" height="1"/><rect x="19" y="9" width="3" height="1"/><rect x="22" y="7" width="1" height="2"/><rect x="16" y="13" width="3" height="1"/><rect x="19" y="13" width="3" height="1"/><rect x="22" y="14" width="1" height="2"/><rect x="15" y="16" width="3" height="1"/><rect x="18" y="17" width="2" height="1"/><rect x="20" y="18" width="1" height="2"/></g></svg><span class="no">14</span></span><span><span class="m-t">Do's, Don'ts &amp; Scoring</span><span class="m-s">What they're marking you on</span></span></a>
+  </div>
+</nav>
+
+<!-- ============ 01 ============ -->
+<section class="mod" id="m01">
+  <div class="mod-head"><span class="mod-num">01</span><h2>WHAT CONSULTING ACTUALLY IS</h2></div>
+  <p class="tagline">The job, in plain words</p>
+
+  <p>Start with the word itself. A <strong>consultant</strong> is someone a company hires from outside to help them answer a hard question. That's it. That's the whole job description.</p>
+
+  <p>Why would a company pay outsiders to think about its own business? Three honest reasons:</p>
+
+  <div class="split">
+    <div class="card"><h5>No spare people</h5><p>The company's own staff are busy running the business day to day. Nobody has three months free to study a new market. <b>Consultants are rented brains for a fixed stretch of time.</b></p></div>
+    <div class="card"><h5>No experience of this</h5><p>A firm might enter a new country once in its whole life. A consulting team has done it eleven times for eleven clients. <b>They've seen the shape of the problem before.</b></p></div>
+    <div class="card"><h5>No neutral view</h5><p>Inside a company, every answer has someone's job attached to it. Nobody says "close my department." <b>An outsider can say the unpopular thing.</b></p></div>
+    <div class="card green"><h5>What you actually deliver</h5><p>Not a product. Not code. <b>A recommendation</b> &mdash; a clear "here's what we think you should do, and here's the evidence" &mdash; usually as a slide deck presented to the people who decide.</p></div>
+  </div>
+
+  <h3>What the work looks like day to day</h3>
+
+  <p>Strip away the suits and it's four repeating moves:</p>
+
+  <ol>
+    <li><strong>Understand the question.</strong> Clients often ask the wrong question. "Should we buy this competitor?" might really be "how do we stop losing customers?" Getting this right is half the value.</li>
+    <li><strong>Break it into pieces.</strong> One huge question becomes six small answerable ones. This is the skill the interview tests hardest.</li>
+    <li><strong>Get evidence for each piece.</strong> Data, interviews, industry reports, a spreadsheet model. Small answers, one at a time.</li>
+    <li><strong>Put it back together as a decision.</strong> Six small answers become one recommendation someone can act on Monday morning.</li>
+  </ol>
+
+  <div class="callout say">
+    <span class="lab">Say it like this</span>
+    <p>If someone asks what consulting is, don't recite a definition. Say: <span class="quote">"A company has a question it can't answer on its own, so it rents a team to answer it properly and come back with a recommendation."</span> That sentence shows you understand the job rather than the job title.</p>
+  </div>
+
+  <h3>Words you'll hear, in plain English</h3>
+
+  <div class="tscroll"><table>
+    <tr><th>Word</th><th>What it actually means</th></tr>
+    <tr><td>Client</td><td>The company paying. Always called the client, never "the customer."</td></tr>
+    <tr><td>Engagement</td><td>One project, start to finish. A club engagement runs one semester.</td></tr>
+    <tr><td>Scope</td><td>The edges of the question. What's in, what's out.</td></tr>
+    <tr><td>Deliverable</td><td>The thing you hand over at the end. Usually a deck.</td></tr>
+    <tr><td>Workstream</td><td>One slice of the project that one person owns.</td></tr>
+    <tr><td>Stakeholder</td><td>Anyone affected by the answer. Includes people who'll resist it.</td></tr>
+    <tr><td>Synthesis</td><td>Pulling many findings into one clear point. Not a summary &mdash; a conclusion.</td></tr>
+    <tr><td>So what?</td><td>The question senior people ask constantly. "You found a number. Why do I care?"</td></tr>
+  </table></div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 01</span>
+    <ul>
+      <li>Can you say what a consultant does in one sentence, without jargon?</li>
+      <li>Can you name the three reasons a company hires outsiders?</li>
+      <li>Do you know what "so what?" is asking for?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="mod" id="m02">
+  <div class="mod-head"><span class="mod-num">02</span><h2>WHAT THESE CLUBS DO</h2></div>
+  <p class="tagline">NOBE, CUBE, IBC, OTCR</p>
+
+  <p>A student consulting club is a small copy of a real consulting firm, run entirely by students, with real clients who don't pay much or don't pay at all. The work is genuine &mdash; that's the point.</p>
+
+  <h3>How a semester runs</h3>
+
+  <p>CUBE's engagements run twelve to fourteen weeks &mdash; one UIUC semester. A team is one <strong>Project Manager</strong>, three to five <strong>Consultants</strong>, and an <strong>Executive Partner</strong> who reviews the work at checkpoints. The PM runs scope and talks to the client. Consultants own workstreams. The partner tears the work apart at the midpoint so it's stronger by the end.</p>
+
+  <p>Projects range from go-to-market strategy and market research through to full-stack engineering builds, AI pipelines, hardware prototyping and design systems. Clients are a mix of startups, mid-market firms and Fortune 500 companies.</p>
+
+  <p>NOBE splits differently &mdash; four project committees (<strong>Consulting, Technology, Finance, Product Development</strong>), each taking its own client project each semester, plus company-sponsored workshops and panels.</p>
+
+  <div class="callout good">
+    <span class="lab">Why this matters for you</span>
+    <p>Knowing this isn't trivia. When they ask "why us?", a specific answer &mdash; naming the workstream structure, the partner review, the committee you'd want &mdash; reads as someone who actually looked. Generic enthusiasm reads as filler.</p>
+  </div>
+
+  <h3>The four you're targeting</h3>
+
+  <div class="tscroll"><table>
+    <tr><th>Club</th><th>Character</th><th>What to lean on</th></tr>
+    <tr><td>NOBE</td><td>Business + engineering bridge. Four committees.</td><td>Pick your committee and say why.</td></tr>
+    <tr><td>CUBE</td><td>Junior Enterprise. Any major, any year.</td><td>Bain-style cases. Social fit is real.</td></tr>
+    <tr><td>IBC</td><td>Largest student-run consultancy in the US, 260+ members. Part of Gies.</td><td>Scale, structure, formal process.</td></tr>
+    <tr><td>OTCR</td><td>Technology-leaning consulting.</td><td>Technical projects.</td></tr>
+  </table></div>
+
+  <h3>What CUBE says it wants</h3>
+
+  <p>They publish it, so there's no guesswork. They hire for <strong>curiosity, ownership, and the willingness to figure things out alongside teammates</strong>. Any major &mdash; business, engineering, CS, design, arts, sciences. Any year, freshmen through seniors. No prior consulting experience required.</p>
+
+  <p>Their own prep checklist: read one of <em class="hl">Case in Point</em> or <em class="hl">Case Interview Secrets</em> front to back; practise three or four cases out loud with a partner; have a clean one-page resume you can walk through in sixty seconds; attend the interview workshop.</p>
+
+  <div class="callout">
+    <span class="lab">Read that again</span>
+    <p><strong>"Out loud."</strong> They said it, not me. Reading cases silently builds none of the skill being tested. The gap between understanding a case and performing one is enormous, and it only closes by talking.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 02</span>
+    <ul>
+      <li>Can you name the three roles on a CUBE project team?</li>
+      <li>Can you name NOBE's four committees and say which one fits you?</li>
+      <li>Have you got a specific, non-generic answer to "why us?"</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="mod" id="m03">
+  <div class="mod-head"><span class="mod-num">03</span><h2>WHAT A CASE INTERVIEW IS</h2></div>
+  <p class="tagline">And why it exists at all</p>
+
+  <p>A <strong>case interview</strong> is a conversation where the interviewer gives you a business problem and you solve it out loud, with them, in fifteen to thirty minutes.</p>
+
+  <p>It sounds like this:</p>
+
+  <div class="callout say">
+    <span class="lab">A typical opening</span>
+    <p><span class="quote">"Our client is a regional grocery chain. Their profits have fallen fifteen percent over the last two years, while the industry has grown. They've asked us to find out why and recommend what to do. Where would you start?"</span></p>
+  </div>
+
+  <p>Then you talk. You ask questions, they give you numbers, you do arithmetic aloud, you form a view, and you finish with a recommendation. The interviewer is a participant, not an audience &mdash; they'll feed you data when you ask for it and nudge you when you wander.</p>
+
+  <h3>Why clubs use cases instead of normal interviews</h3>
+
+  <p>Because a normal interview only tells you what someone claims about themselves. A case shows them <strong>watching you think in real time</strong>, which is exactly the thing the job consists of. In one conversation they see:</p>
+
+  <ul>
+    <li>Whether you can impose order on a messy question</li>
+    <li>Whether you panic when you don't know something</li>
+    <li>Whether you can do arithmetic while a stranger watches</li>
+    <li>Whether you listen or just wait for your turn to talk</li>
+    <li>Whether you take a correction gracefully</li>
+    <li>Whether you'd be pleasant to sit next to at 11pm before a client deadline</li>
+  </ul>
+
+  <h3>The kinds you'll meet</h3>
+
+  <div class="tscroll"><table>
+    <tr><th>Type</th><th>The question underneath</th><th>How common</th></tr>
+    <tr><td>Profitability</td><td>Profit fell. Why, and what now?</td><td>Most common by far</td></tr>
+    <tr><td>Market entry</td><td>Should we go into this new market?</td><td>Very common</td></tr>
+    <tr><td>Market sizing</td><td>How big is this thing? Estimate it.</td><td>Common, often as a warm-up</td></tr>
+    <tr><td>Pricing</td><td>What should we charge?</td><td>Fairly common</td></tr>
+    <tr><td>Growth</td><td>Revenue is flat. How do we grow it?</td><td>Fairly common</td></tr>
+    <tr><td>Acquisition</td><td>Should we buy this company?</td><td>Less common at club level</td></tr>
+  </table></div>
+
+  <p>Day 1 and Day 2 of this plan cover the machinery for each of these. Today is about the shape they all share.</p>
+
+  <div class="sense">
+    <span class="lab">Sense check</span>
+    <p>A case is not a test with an answer key. It is closer to <strong>a driving test</strong>. The examiner doesn't care that you reached the supermarket &mdash; they care whether you checked your mirrors, signalled, and stayed calm at the roundabout. Two candidates can reach opposite conclusions and the one with cleaner process wins.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 03</span>
+    <ul>
+      <li>Can you explain why clubs use cases rather than ordinary interviews?</li>
+      <li>Can you name the six case types and what each is really asking?</li>
+      <li>Do you understand that the interviewer is a participant, not a judge in silence?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="mod" id="m04">
+  <div class="mod-head"><span class="mod-num">04</span><h2>STRUCTURE BEATS THE ANSWER</h2></div>
+  <p class="tagline">The reframe everything rests on</p>
+
+  <p>This is the single most important idea on this page. Everything else is detail hanging off it.</p>
+
+  <div class="formula">THEY ARE MARKING<br>HOW YOU THINK<br>NOT WHERE YOU LAND</div>
+
+  <p>Beginners treat a case like a riddle. They hear the prompt, feel the pressure, and start firing guesses: <em class="hl">"maybe a competitor cut prices?"</em> &mdash; <em class="hl">"maybe their costs went up?"</em> &mdash; <em class="hl">"could it be online shopping?"</em></p>
+
+  <p>Every one of those might be right. It doesn't matter. The candidate has just shown they attack problems by guessing, and no interviewer wants to put that person in front of a client.</p>
+
+  <h3>What the strong version looks like</h3>
+
+  <p>Same prompt, different move. The strong candidate says:</p>
+
+  <div class="callout good">
+    <span class="lab">The structured opening</span>
+    <p><span class="quote">"Before I dig in, I'd like to understand the situation better &mdash; then I'll lay out how I want to approach it. Profit is revenue minus costs, so the first thing I want to establish is which of those two moved. Once I know that, I can go one level deeper on whichever side is driving it."</span></p>
+  </div>
+
+  <p>Notice what happened. They didn't guess a cause. They <strong>built a map of where the answer could possibly be hiding</strong>, then said they'd search it in order. Now every question they ask has a reason behind it, and the interviewer can follow their reasoning without being told.</p>
+
+  <h3>Why interviewers care so much about this</h3>
+
+  <p>Because on a real project nobody hands you the answer, and you can't guess your way to one over twelve weeks. What actually protects a project is a person who can take a vague question and carve it into pieces that can be checked. That is a rare, trainable, visible skill &mdash; and a case interview is the cheapest way to test for it.</p>
+
+  <div class="sense">
+    <span class="lab">Sense check</span>
+    <p>Guessing is grabbing at one strand and hoping it holds. Structure is <strong>anchoring the whole web first</strong>, then testing each strand in turn. When one gives way you already know which one, and the rest still holds you.</p>
+  </div>
+
+  <div class="callout">
+    <span class="lab">The habit to build starting now</span>
+    <p>When you hear any business question &mdash; in a case, in the news, in conversation &mdash; resist naming a cause. Ask instead: <strong>"what are all the places the answer could live?"</strong> Do this fifty times and it stops being effort.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 04</span>
+    <ul>
+      <li>Can you explain why guessing causes early is fatal even when the guess is correct?</li>
+      <li>Can you catch yourself doing it?</li>
+      <li>Can you replace a guess with a map, out loud, in one sentence?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="mod" id="m05">
+  <div class="mod-head"><span class="mod-num">05</span><h2>THE FOUR-STAGE SKELETON</h2></div>
+  <p class="tagline">The shape of every single case</p>
+
+  <p>Every case &mdash; profitability, entry, pricing, sizing, all of them &mdash; runs the same four stages in the same order. Learn the shape once and you stop improvising.</p>
+
+  <div class="tree">
+    <div class="tnode t0">THE CASE SKELETON</div>
+    <div class="trow" style="grid-template-columns:1fr 1fr 1fr 1fr">
+      <div class="tbranch"><div class="tnode t1">CLARIFY<span>Understand it</span></div></div>
+      <div class="tbranch"><div class="tnode t1">STRUCTURE<span>Map it</span></div></div>
+      <div class="tbranch"><div class="tnode t1">ANALYSE<span>Walk the map</span></div></div>
+      <div class="tbranch"><div class="tnode t1">CONCLUDE<span>Decide</span></div></div>
+    </div>
+  </div>
+
+  <h3>Rough timing in a twenty-minute case</h3>
+
+  <div class="tscroll"><table>
+    <tr><th>Stage</th><th>Time</th><th>What's happening</th></tr>
+    <tr><td>Clarify</td><td class="n">2&ndash;3 min</td><td>Questions that set the edges of the problem</td></tr>
+    <tr><td>Structure</td><td class="n">2&ndash;3 min</td><td>30 seconds of silence, then you present your plan</td></tr>
+    <tr><td>Analyse</td><td class="n">10&ndash;12 min</td><td>The bulk. Branch by branch, with maths</td></tr>
+    <tr><td>Conclude</td><td class="n">2 min</td><td>Recommendation, reasons, risk, next step</td></tr>
+  </table></div>
+
+  <p>Don't treat these as stopwatch rules. Treat them as a warning system: if you're eight minutes in and still asking clarifying questions, something has gone wrong.</p>
+
+  <h3>What each stage is for, in one line</h3>
+
+  <div class="split">
+    <div class="card green"><h5>1 &mdash; Clarify</h5><p><b>Make sure you're solving the right problem.</b> A wrong turn here poisons everything after it, because you'll analyse beautifully in the wrong direction.</p></div>
+    <div class="card"><h5>2 &mdash; Structure</h5><p><b>Build and announce the map.</b> This is where you win or lose the interview. Say your plan out loud before you touch it.</p></div>
+    <div class="card"><h5>3 &mdash; Analyse</h5><p><b>Walk the map branch by branch.</b> Ask for data, do the arithmetic aloud, close each branch with a one-line verdict.</p></div>
+    <div class="card red"><h5>4 &mdash; Conclude</h5><p><b>Land it as a decision.</b> Not "they should look into pricing." An actual recommendation someone could act on.</p></div>
+  </div>
+
+  <div class="callout">
+    <span class="lab">The most common failure</span>
+    <p>Skipping stage 2. Candidates hear the prompt, ask two questions, then start analysing immediately. It feels efficient and productive. To the interviewer it looks like someone wandering around a building trying doors at random.</p>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="mod" id="m06">
+  <div class="mod-head"><span class="mod-num">06</span><h2>STAGE 1 &MDASH; CLARIFY</h2></div>
+  <p class="tagline">Scoping, not guessing</p>
+
+  <p>Before you analyse anything, make sure you understand the problem. Interviewers <strong>deliberately leave details out</strong> &mdash; that's the test. The information is available; you have to ask for it.</p>
+
+  <h3>The three buckets to pull from</h3>
+
+  <div class="split">
+    <div class="card green"><h5>Objective &amp; scope</h5><p>What counts as success, and where are the edges? <b>"When you say sales, do you mean revenue or units?" "Is this the whole company or one division?" "Is there a target we're aiming at?"</b></p></div>
+    <div class="card green"><h5>Client profile</h5><p>What is this business, actually? <b>"What do they sell and who buys it?" "How do they make money?" "How long have they been operating?"</b></p></div>
+    <div class="card green"><h5>The number itself</h5><p>Pin down the fact in the prompt. <b>"Since when has this been happening?" "Is that fall against last year, or against a plan?" "Gradual or sudden?"</b></p></div>
+  </div>
+
+  <p>Ask <strong>two to four</strong> of these, front-loaded, before you build your structure. Not scattered through the case. Too many and you look like you're stalling.</p>
+
+  <h3>The mistake that costs the most marks</h3>
+
+  <p>Here is the distinction almost every beginner gets wrong, including you the first time:</p>
+
+  <div class="split">
+    <div class="card green"><h5>A clarifier names a boundary</h5><p><b>"Is the decline in one region or across all of the US?"</b><br>This tells you where to look. It doesn't propose a cause.</p></div>
+    <div class="card red"><h5>A hypothesis names a cause</h5><p><b>"Could a competitor be pricing us out?"</b><br>This is a guess wearing a question mark. It belongs in Analyse, not here.</p></div>
+  </div>
+
+  <div class="callout">
+    <span class="lab">Why it reads badly</span>
+    <p>A hypothesis in the clarify stage tells the interviewer you started guessing before you built a structure &mdash; the exact failure mode from section 04. The idea might be excellent. <strong>The timing makes it look like flailing.</strong></p>
+  </div>
+
+  <p>The test is simple. Ask yourself: <em class="hl">does this question narrow where I search, or does it propose an answer?</em> Narrowing is a clarifier. Proposing is a hypothesis. Save every hypothesis for stage 3, where it becomes a strength.</p>
+
+  <div class="console">
+    <p class="ctitle">DRILL &mdash; CLARIFIER OR HYPOTHESIS?</p>
+    <p style="font-family:var(--hud);font-size:20px;color:var(--dim);letter-spacing:1px;margin:0 0 14px">Prompt: a national pizza chain's profits fell 20% last year. Sort each question.</p>
+    <div id="drill"></div>
+    <div class="verdict" id="drillScore">Score: 0 / 10</div>
+  </div>
+
+  <div class="callout say">
+    <span class="lab">Closing the stage cleanly</span>
+    <p>When you've asked enough, say so &mdash; don't just trail off. <span class="quote">"That's helpful, thank you. Could I take thirty seconds to put my thoughts together?"</span> Then take it. Silence while you write is completely normal and expected.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 06</span>
+    <ul>
+      <li>Can you name the three buckets without looking?</li>
+      <li>Can you tell a clarifier from a hypothesis every time?</li>
+      <li>Do you know the sentence that closes the stage and buys you 30 seconds?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="mod" id="m07">
+  <div class="mod-head"><span class="mod-num">07</span><h2>STAGE 2 &MDASH; STRUCTURE</h2></div>
+  <p class="tagline">Building the map out loud</p>
+
+  <p>You've taken your thirty seconds. Now you present the map. This is the highest-value ninety seconds of the whole interview.</p>
+
+  <h3>The one rule that separates good from bad here</h3>
+
+  <div class="split">
+    <div class="card red"><h5>Never say this</h5><p><b>"I'm going to use the profitability framework."</b><br>Naming a framework tells the interviewer you memorised a template and are about to apply it whether it fits or not.</p></div>
+    <div class="card green"><h5>Say this instead</h5><p><b>"Profit is revenue minus costs, so I'd first establish which side moved. Then I'd go a level deeper on that side. Then I'd check whether anything outside the company explains it."</b></p></div>
+  </div>
+
+  <p>Same structure. Utterly different impression. The second version describes <strong>what you are going to do</strong>, in the language of this specific business. The first describes a tool you own.</p>
+
+  <h3>The shape of a good structure statement</h3>
+
+  <ol>
+    <li><strong>Announce the arc.</strong> "I'd like to look at three areas." Give the number first &mdash; it lets the interviewer follow.</li>
+    <li><strong>Name each area in plain words.</strong> Not "internal and external factors" if you can say "what's happening inside the stores, and what's happening in the market around them."</li>
+    <li><strong>Say where you'll start and why.</strong> "I'd start with costs, since the prompt mentioned margins specifically."</li>
+    <li><strong>Then actually start there.</strong> Candidates announce a plan and immediately abandon it. The interviewer notices.</li>
+  </ol>
+
+  <div class="callout say">
+    <span class="lab">A full worked example</span>
+    <p><span class="quote">"I'd like to break this into three parts. First, whether the profit fall came from revenue or from costs &mdash; that tells us which half of the business to look at. Second, within whichever one it is, whether it's a price problem or a volume problem. Third, whether anything in the wider market &mdash; a new competitor, a shift in what customers want &mdash; explains what we find. I'd like to start with the first, because it narrows the search fastest. Could I ask how revenue has moved over the two years?"</span></p>
+  </div>
+
+  <p>That is roughly forty seconds of speech and it does an enormous amount of work: it shows a plan, gives a reason for the order, and ends by driving the case forward with a specific question.</p>
+
+  <div class="sense">
+    <span class="lab">Sense check</span>
+    <p>Your structure is the web you anchor before you step out onto it. Anchor it badly and every move afterwards is a scramble. <strong>Thirty seconds of silence spent anchoring properly buys you ten minutes of calm.</strong></p>
+  </div>
+
+  <div class="callout good">
+    <span class="lab">Write it so a stranger could read it</span>
+    <p>Your paper matters. Keep one clean sheet with your structure on it &mdash; branches, headings, room to fill in numbers. Interviewers sometimes glance at it. A tidy sheet reinforces everything you're claiming about yourself; a scribbled mess undercuts it.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 07</span>
+    <ul>
+      <li>Can you present a structure without ever naming a framework?</li>
+      <li>Do you give the number of areas before listing them?</li>
+      <li>Do you end your structure by asking a specific question?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="mod" id="m08">
+  <div class="mod-head"><span class="mod-num">08</span><h2>STAGE 3 &MDASH; ANALYSE</h2></div>
+  <p class="tagline">Walking the map, branch by branch</p>
+
+  <p>Now you walk the map you just drew. This is ten to twelve minutes &mdash; the bulk of the case &mdash; and it's where most of the marks actually get awarded.</p>
+
+  <h3>The two questions to keep asking</h3>
+
+  <p>Almost every useful insight in a case comes from a comparison. A number on its own means nothing. Two comparisons unlock nearly everything:</p>
+
+  <div class="split">
+    <div class="card"><h5>Compared to before</h5><p><b>"How has this moved over time?"</b> If costs are 30% of revenue, that's neither good nor bad &mdash; until you learn they were 22% two years ago.</p></div>
+    <div class="card"><h5>Compared to others</h5><p><b>"How does this compare to competitors?"</b> If everyone's margins fell, it's an industry problem. If only ours fell, it's a company problem. Completely different recommendations.</p></div>
+  </div>
+
+  <h3>Do the arithmetic out loud</h3>
+
+  <p>Don't go quiet and scribble. Narrate it, so the interviewer can follow and correct you before you go far wrong:</p>
+
+  <div class="callout say">
+    <span class="lab">Narrating a calculation</span>
+    <p><span class="quote">"So revenue was 2 billion and is now 180 &mdash; that's a fall of 20, so 10 percent. Costs went from 150 to 160, up about 7 percent. So profit went from 50 down to 20. Revenue fell, but the bigger story is that both moved against us at once."</span></p>
+  </div>
+
+  <p>Two habits inside that: <strong>round aggressively</strong> and <strong>ask permission to round</strong>. "May I use 30% rather than 31%?" is always granted and always makes you look composed rather than sloppy.</p>
+
+  <h3>Say the "so what" after every number</h3>
+
+  <p>This is the difference between arithmetic and consulting. A calculation with no interpretation scores close to nothing.</p>
+
+  <div class="split">
+    <div class="card red"><h5>Number only</h5><p><b>"Variable cost per unit went up 20 percent."</b><br>True. Silent. The interviewer is waiting.</p></div>
+    <div class="card green"><h5>Number plus meaning</h5><p><b>"Variable cost per unit went up 20 percent while price stayed flat &mdash; so the margin squeeze is coming from inputs, not from discounting. That points me at suppliers."</b></p></div>
+  </div>
+
+  <h3>Close each branch before moving on</h3>
+
+  <p>When you finish a branch, give it a one-line verdict and say where you're going next. This is called a <strong>mini-synthesis</strong>, and it's what makes an interview sound like a conversation instead of a checklist being read aloud.</p>
+
+  <div class="callout say">
+    <span class="lab">Closing a branch</span>
+    <p><span class="quote">"So costs aren't the story &mdash; they've actually grown slower than inflation. That points me back to the revenue side, and specifically to volume. Could I look at how many units we sold each year?"</span></p>
+  </div>
+
+  <h3>When you get stuck</h3>
+
+  <p>You will. Everyone does. The recovery matters more than the stall.</p>
+
+  <ul>
+    <li><strong>Say what you know, then what you'd want.</strong> "I've established it's a volume problem and not a price problem. What I'd want next is whether we're losing existing customers or failing to win new ones."</li>
+    <li><strong>Ask for a moment.</strong> "Could I take ten seconds to think?" Perfectly acceptable. Better than filling silence with noise.</li>
+    <li><strong>Take the hint.</strong> Interviewers drop hints when they see you drifting &mdash; "that's interesting, but what about the supply side?" is not conversation. It is a rescue rope. <strong>Grab it.</strong> Candidates who dig in on their own path after a hint score badly.</li>
+  </ul>
+
+  <div class="sense">
+    <span class="lab">Sense check</span>
+    <p>Each branch you close is a strand you've tested and found solid or slack. Closing branches out loud is how the interviewer knows you're testing rather than wandering. <strong>An untested web looks identical to a tested one &mdash; until you put weight on it.</strong></p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 08</span>
+    <ul>
+      <li>Do you compare every number to something &mdash; before, or others?</li>
+      <li>Do you say the "so what" after every calculation, without being asked?</li>
+      <li>Can you close a branch and signpost the next one in one sentence?</li>
+      <li>Do you recognise a hint as a hint?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 09 ============ -->
+<section class="mod" id="m09">
+  <div class="mod-head"><span class="mod-num">09</span><h2>STAGE 4 &MDASH; CONCLUDE</h2></div>
+  <p class="tagline">Landing it like a decision</p>
+
+  <p>Two minutes left. This is the part candidates most often fumble, because they're tired and they let the case fade out instead of landing it.</p>
+
+  <div class="formula">RECOMMENDATION<br>+ 2&ndash;3 REASONS<br>+ 1 RISK OR NEXT STEP</div>
+
+  <h3>Lead with the answer</h3>
+
+  <p>Don't build up to it. Don't recap the journey. State the recommendation in the first sentence, then support it. Senior people want the conclusion first &mdash; if they want the reasoning they'll ask.</p>
+
+  <div class="split">
+    <div class="card red"><h5>Weak ending</h5><p><b>"So we looked at revenue and costs, and we found some things on the cost side, and I think the client should probably look into their pricing strategy and maybe consider their supplier relationships."</b></p></div>
+    <div class="card green"><h5>Strong ending</h5><p><b>"I'd recommend renegotiating the two largest supply contracts. Input costs drove 80 percent of the margin fall, our prices are already at the market ceiling, and volume is healthy. The risk is supplier concentration &mdash; if these two walk, we have no alternative, so I'd want a backup supplier identified first."</b></p></div>
+  </div>
+
+  <h3>Why the risk line matters so much</h3>
+
+  <p>Adding a risk is the cheapest way to look senior. It says: <em class="hl">I know my recommendation isn't free, and I've thought about what could go wrong.</em> Almost no beginner does this, so it stands out immediately.</p>
+
+  <p>If you can't think of a risk, offer a next step instead &mdash; "the next thing I'd want to check is whether the volume figures hold up by region." Same effect: it shows the thinking continues past the answer.</p>
+
+  <h3>Rules for the last two minutes</h3>
+
+  <ul>
+    <li><strong>Be concrete.</strong> "Raise price 8% on the premium line, where demand is least sensitive" beats "consider pricing strategy." A recommendation someone can act on Monday.</li>
+    <li><strong>Sanity-check any number before you say it.</strong> A wrong figure in the final line undoes twenty good minutes.</li>
+    <li><strong>Never trail off.</strong> Finish on a full stop, not a rising tone. If you're unsure, say the recommendation anyway &mdash; a confident wrong answer with clear reasoning scores far better than no answer.</li>
+    <li><strong>Don't hedge into mush.</strong> "It depends" is not a conclusion. Pick a side and name the condition under which you'd change your mind.</li>
+  </ul>
+
+  <div class="sense">
+    <span class="lab">Sense check</span>
+    <p>The whole case has been you spinning strands. The recommendation is the moment you <strong>put weight on the web and let go of the ledge.</strong> Do it with your voice steady, even if privately you're only 70% sure. Nobody is ever 100% sure &mdash; that's why it's a recommendation and not a fact.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 09</span>
+    <ul>
+      <li>Does your first sentence contain the actual recommendation?</li>
+      <li>Do you give two or three reasons, not seven?</li>
+      <li>Do you add a risk or a next step every single time?</li>
+      <li>Can you end on a full stop?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="mod" id="m10">
+  <div class="mod-head"><span class="mod-num">10</span><h2>MECE</h2></div>
+  <p class="tagline">No overlaps, no gaps</p>
+
+  <p><strong>MECE</strong> stands for <em class="hl">Mutually Exclusive, Collectively Exhaustive</em>. Consultants say it constantly. Translated into plain English it means:</p>
+
+  <div class="formula">NO OVERLAPS<br>NO GAPS</div>
+
+  <p><strong>Mutually exclusive</strong> &mdash; your categories don't bleed into each other. Nothing belongs in two of them.<br>
+  <strong>Collectively exhaustive</strong> &mdash; between them, your categories cover everything. Nothing is left out.</p>
+
+  <h3>A broken split, and why it's broken</h3>
+
+  <p>Question: <em class="hl">why are our sales down?</em> The beginner's list:</p>
+
+  <div class="callout">
+    <span class="lab">Not MECE</span>
+    <p>Pricing &nbsp;&middot;&nbsp; Marketing &nbsp;&middot;&nbsp; The economy &nbsp;&middot;&nbsp; Competitors &nbsp;&middot;&nbsp; Our website</p>
+    <p><strong>Overlaps:</strong> the website is part of marketing. A competitor cutting prices sits in both "competitors" and "pricing."<br>
+    <strong>Gaps:</strong> nothing here covers distribution, product quality, or the sales team. If the answer lives there, this candidate will never find it.</p>
+  </div>
+
+  <p>Notice the real damage: an overlap wastes time and confuses the listener, but <strong>a gap means the answer can be somewhere you never look.</strong> Gaps are the dangerous half.</p>
+
+  <h3>The same question, done properly</h3>
+
+  <div class="tree">
+    <div class="tnode t0">WHY ARE SALES DOWN?</div>
+    <div class="trow">
+      <div class="tbranch"><div class="tnode t1">INSIDE THE COMPANY<span>Things we control</span></div>
+        <div class="tnode t2">Product &mdash; quality, range</div>
+        <div class="tnode t2">Price &mdash; level, discounts</div>
+        <div class="tnode t2">Getting it to people &mdash; channels, stock</div>
+        <div class="tnode t2">Telling people &mdash; marketing, sales team</div>
+      </div>
+      <div class="tbranch"><div class="tnode t1 red">OUTSIDE THE COMPANY<span>Things we don't</span></div>
+        <div class="tnode t2 red">Customers &mdash; what they want changed</div>
+        <div class="tnode t2 red">Competitors &mdash; new, cheaper, better</div>
+        <div class="tnode t2 red">The market &mdash; economy, regulation</div>
+      </div>
+    </div>
+  </div>
+
+  <p>Two top-level buckets, no overlap, and together they genuinely cover everything &mdash; a cause is either something the company controls or something it doesn't. There's no third option. That's what makes it safe.</p>
+
+  <h3>Splits that are MECE by construction</h3>
+
+  <p>Some splits can't fail, because they're built on a real dividing line. Reach for these when you're under pressure:</p>
+
+  <div class="tscroll"><table>
+    <tr><th>Split</th><th>Why it can't leak</th></tr>
+    <tr><td>Internal / External</td><td>You either control it or you don't</td></tr>
+    <tr><td>Revenue / Costs</td><td>Money comes in or goes out</td></tr>
+    <tr><td>Price / Volume</td><td>Revenue is only ever these two multiplied</td></tr>
+    <tr><td>Fixed / Variable</td><td>A cost either moves with output or doesn't</td></tr>
+    <tr><td>New / Existing customers</td><td>Someone has bought before, or hasn't</td></tr>
+    <tr><td>Supply / Demand</td><td>Either we can't make it or they won't buy it</td></tr>
+  </table></div>
+
+  <div class="callout good">
+    <span class="lab">The honest caveat</span>
+    <p>Perfect MECE is an aim, not a religion. Real problems are messy and a slightly imperfect structure said with confidence beats a perfect one you're still building in silence. <strong>Aim for no gaps first</strong> &mdash; overlaps cost you a little elegance, gaps cost you the answer.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 10</span>
+    <ul>
+      <li>Can you say what MECE means in six words?</li>
+      <li>Can you spot the overlap and the gap in a bad list?</li>
+      <li>Do you know why gaps are worse than overlaps?</li>
+      <li>Can you name four splits that are MECE by construction?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="mod" id="m11">
+  <div class="mod-head"><span class="mod-num">11</span><h2>ISSUE TREES</h2></div>
+  <p class="tagline">How to split anything</p>
+
+  <p>An <strong>issue tree</strong> is what you get when you apply MECE over and over. Start with the big question, split it into parts, split those parts, and keep going until you hit something you can actually check with a number.</p>
+
+  <h3>How far down to go</h3>
+
+  <p>Until the bottom of a branch is <strong>testable</strong> &mdash; something you could ask the interviewer for. "Costs" isn't testable. "Cost per delivery" is. Usually that's two or three levels. Going deeper burns time; stopping shallower leaves you with nothing to ask about.</p>
+
+  <h3>The profitability tree</h3>
+
+  <p>This one is worth memorising cold, because profitability is the most common case type you'll meet. Everything hangs off one equation:</p>
+
+  <div class="formula">PROFIT = REVENUE &minus; COSTS</div>
+
+  <div class="tree">
+    <div class="tnode t0">PROFIT</div>
+    <div class="trow">
+      <div class="tbranch"><div class="tnode t1">REVENUE<span>Money coming in</span></div>
+        <div class="tnode t2">Price &mdash; per unit, mix, discounts</div>
+        <div class="tnode t2">Quantity &mdash; volume, share, market size</div>
+      </div>
+      <div class="tbranch"><div class="tnode t1 red">COSTS<span>Money going out</span></div>
+        <div class="tnode t2 red">Fixed &mdash; rent, salaries, equipment</div>
+        <div class="tnode t2 red">Variable &mdash; materials, labour, shipping</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Using it as a search, not a recital</h3>
+
+  <p>The tree isn't something you read out. It's something you <strong>search in order</strong>, and each question you ask should cut the search space roughly in half:</p>
+
+  <ol>
+    <li><strong>"Has revenue fallen, or have costs risen?"</strong> &mdash; kills half the tree in one question.</li>
+    <li><strong>"Is that a price problem or a volume problem?"</strong> &mdash; halves it again.</li>
+    <li><strong>"Is the volume drop in existing customers or new ones?"</strong> &mdash; now you're somewhere specific.</li>
+  </ol>
+
+  <p>Three questions and you've localised the issue, while a weaker candidate is still listing possibilities. This is what people mean when they say someone "drives the case."</p>
+
+  <div class="sense">
+    <span class="lab">Sense check</span>
+    <p>A tree isn't decoration and it isn't a checklist to read aloud. It's <strong>a search grid.</strong> You're not showing the interviewer everywhere the answer could be &mdash; you're eliminating regions until only one is left.</p>
+  </div>
+
+  <h3>When the tree doesn't crack it</h3>
+
+  <p>Sometimes you split revenue and costs and neither side gives a clean answer. The escape hatch is to walk the <strong>value chain</strong> instead &mdash; the actual sequence of steps the business runs to deliver its product:</p>
+
+  <div class="formula" style="font-size:clamp(8px,1.3vw,11px)">SUPPLIERS &rarr; MAKING IT &rarr; STORING IT &rarr; MOVING IT &rarr; SELLING IT &rarr; AFTER-SALE</div>
+
+  <p>Walk each step and ask what could go wrong there. This catches operational problems that a revenue-and-costs split can hide &mdash; a warehouse bottleneck, a supplier who became unreliable, a delivery step that quietly got expensive.</p>
+
+  <div class="callout good">
+    <span class="lab">Practise this way</span>
+    <p>Take any business question and draw the tree on paper with no timer. Then interrogate your own drawing: <strong>does anything overlap? Did I miss anything? Is the bottom of each branch something I could actually ask for a number on?</strong> Ten trees drawn slowly beats fifty read quickly.</p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 11</span>
+    <ul>
+      <li>Can you draw the profitability tree from memory, three levels deep?</li>
+      <li>Do you know how far down to split &mdash; and why?</li>
+      <li>Can you name three questions that each halve the search space?</li>
+      <li>Do you know the value-chain escape hatch?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 12 ============ -->
+<section class="mod" id="m12">
+  <div class="mod-head"><span class="mod-num">12</span><h2>SIZING A MARKET</h2></div>
+  <p class="tagline">Guessing a number properly</p>
+
+  <p><em class="hl">"How many umbrellas are sold in Chicago each year?"</em> You don't know. Nobody knows. That's fine &mdash; nobody expects you to.</p>
+
+  <p>What's being tested is whether you can <strong>build an estimate out of things you do know</strong>, stay organised, and do arithmetic calmly while someone watches. The final number barely matters. The path to it is the whole mark.</p>
+
+  <h3>The method</h3>
+
+  <ol>
+    <li><strong>Start from a number you're confident about.</strong> Usually a population. City, country, households.</li>
+    <li><strong>Apply filters, one at a time.</strong> Each filter cuts the group down. Say each one out loud as you apply it.</li>
+    <li><strong>Convert to the thing being asked.</strong> People &rarr; buyers &rarr; purchases per year.</li>
+    <li><strong>Sanity-check the result.</strong> Does it feel plausible? If not, say so and name which assumption you'd revisit.</li>
+  </ol>
+
+  <h3>Worked example</h3>
+
+  <div class="tscroll"><table>
+    <tr><th>Step</th><th>Reasoning</th><th>Number</th></tr>
+    <tr><td>Population</td><td>Chicago, roughly</td><td class="n">3,000,000</td></tr>
+    <tr><td>Adults who'd buy their own</td><td>Say 60% &mdash; excludes young children</td><td class="n">1,800,000</td></tr>
+    <tr><td>Who own an umbrella at all</td><td>Say 80% &mdash; it rains there</td><td class="n">1,440,000</td></tr>
+    <tr><td>Replacement rate</td><td>Lost, broken, left in a cab &mdash; every 2 years</td><td class="n">&divide; 2</td></tr>
+    <tr class="total"><td>Annual purchases</td><td>Plus tourists and impulse buys, round up</td><td class="n">~750,000</td></tr>
+  </table></div>
+
+  <h3>The four habits that get you the marks</h3>
+
+  <div class="split">
+    <div class="card green"><h5>Round hard</h5><p>Use 3 million, never 2,746,388. Round numbers are faster, less error-prone, and <b>signal that you understand this is an estimate.</b></p></div>
+    <div class="card green"><h5>Say every assumption</h5><p><b>"I'm assuming 60% are adults &mdash; is that reasonable?"</b> If the interviewer corrects you, that's a gift, not a failure. They're steering you.</p></div>
+    <div class="card green"><h5>State your unit and stay in it</h5><p><b>"I'll work in millions."</b> Most errors in market sizing are unit slips, not arithmetic slips.</p></div>
+    <div class="card green"><h5>Sanity-check at the end</h5><p><b>"That's about one umbrella per four people per year, which feels about right."</b> This single sentence separates you from most candidates.</p></div>
+  </div>
+
+  <div class="callout">
+    <span class="lab">The trap</span>
+    <p>Going quiet to do the arithmetic. If you stop narrating, the interviewer has no idea whether you're calculating or frozen &mdash; and they can't help you. <strong>Talk through every step, even the boring ones.</strong></p>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">CHECKPOINT 12</span>
+    <ul>
+      <li>Can you name the four steps of the method?</li>
+      <li>Do you round to clean numbers automatically?</li>
+      <li>Do you say assumptions out loud and invite correction?</li>
+      <li>Do you sanity-check the final number?</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 13 ============ -->
+<section class="mod" id="m13">
+  <div class="mod-head"><span class="mod-num">13</span><h2>SIGNPOSTING</h2></div>
+  <p class="tagline">Saying where you are</p>
+
+  <p><strong>Signposting</strong> means saying where you are before you go there. It costs you four seconds and it changes how organised you sound more than any other single habit.</p>
+
+  <p>The interviewer is taking notes and cannot read your mind. Without signposting, a good answer can sound like wandering. With it, even a stumbling answer sounds controlled.</p>
+
+  <h3>The phrasebook</h3>
+
+  <div class="tscroll"><table>
+    <tr><th>Moment</th><th>What to say</th></tr>
+    <tr><td>Confirming the problem</td><td>"So the client is X, the issue is Y, and we want Z. Have I got that right?"</td></tr>
+    <tr><td>Buying thinking time</td><td>"Could I take thirty seconds to structure my thoughts?"</td></tr>
+    <tr><td>Presenting structure</td><td>"I'd like to look at three areas. First&hellip; second&hellip; third&hellip;"</td></tr>
+    <tr><td>Starting a branch</td><td>"Let me start with the cost side."</td></tr>
+    <tr><td>Asking for data</td><td>"Do we have a figure for how sales split by region?"</td></tr>
+    <tr><td>Before calculating</td><td>"Let me work through that &mdash; I'll do it out loud."</td></tr>
+    <tr><td>Rounding</td><td>"May I round that to 30% to keep it clean?"</td></tr>
+    <tr><td>Closing a branch</td><td>"So costs aren't the driver here. Let me move to volume."</td></tr>
+    <tr><td>Recovering from an error</td><td>"Let me correct that &mdash; the figure is 42, not 24. So that changes the picture to&hellip;"</td></tr>
+    <tr><td>Taking a hint</td><td>"That's a good point &mdash; let me look at the supply side instead."</td></tr>
+    <tr><td>Concluding</td><td>"I'd recommend X. Three reasons. The main risk is Y."</td></tr>
+  </table></div>
+
+  <div class="callout good">
+    <span class="lab">How to practise it</span>
+    <p>Say these aloud until they're automatic. In the interview you'll be thinking hard about the problem &mdash; there's no spare capacity to also invent phrasing. <strong>Pre-loaded sentences free up your brain for the actual work.</strong></p>
+  </div>
+
+  <div class="sense">
+    <span class="lab">Sense check</span>
+    <p>Signposting is a line of web trailing behind you. The interviewer can see exactly where you've been and where you're heading. <strong>Without it, you might be moving brilliantly &mdash; but from the outside it looks like flailing in the dark.</strong></p>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+<!-- ============ 14 ============ -->
+<section class="mod" id="m14">
+  <div class="mod-head"><span class="mod-num">14</span><h2>DO'S, DON'TS &AMP; SCORING</h2></div>
+  <p class="tagline">What they're marking you on</p>
+
+  <h3>Do</h3>
+
+  <ul>
+    <li><strong>Build rapport in the opening seconds.</strong> Smile, greet them properly. They're deciding whether they'd enjoy working with you from the first moment.</li>
+    <li><strong>Stay composed when a number comes out wrong.</strong> Own it, correct it, move on. One clean correction. Not three apologies.</li>
+    <li><strong>Keep your working sheet clean enough that a stranger could follow it.</strong></li>
+    <li><strong>Ask for what you need.</strong> Data, a moment, a repeat of a figure. Asking is expected, not weakness.</li>
+    <li><strong>Watch for hints and take them.</strong> They're a rescue rope, not conversation.</li>
+    <li><strong>Say the "so what" after every number.</strong></li>
+  </ul>
+
+  <h3>Don't</h3>
+
+  <ul>
+    <li><strong>Don't assume any fact you weren't given.</strong> If you need it, ask. Inventing data is the fastest way to lose credibility.</li>
+    <li><strong>Don't interrupt.</strong> The detail they mention once is often the key to the case.</li>
+    <li><strong>Don't treat a framework as gospel.</strong> An acquisition can fix a profitability problem and no framework will hand you that &mdash; judgment fills the gaps.</li>
+    <li><strong>Don't panic visibly.</strong> Everyone stalls. The recovery is what's marked.</li>
+    <li><strong>Don't guess causes before you've built a structure.</strong></li>
+    <li><strong>Don't trail off at the end.</strong></li>
+  </ul>
+
+  <h3>What they're actually scoring</h3>
+
+  <div class="tscroll"><table>
+    <tr><th>Quality</th><th>What it looks like in the room</th><th>Trainable in 5 days?</th></tr>
+    <tr><td>Structured thinking</td><td>Imposing order before answering</td><td>Yes &mdash; most trainable</td></tr>
+    <tr><td>Numbers out loud</td><td>Composure, not maths skill</td><td>Yes &mdash; pure repetition</td></tr>
+    <tr><td>Listening</td><td>Catching the detail said once</td><td>Partly &mdash; write things down</td></tr>
+    <tr><td>Coachability</td><td>"Fair point, let me reconsider" &mdash; then actually adjusting</td><td>Yes &mdash; it's a decision</td></tr>
+    <tr><td>Ownership</td><td>"I noticed X was broken and fixed it"</td><td>Shown in stories, not built</td></tr>
+    <tr><td>Specific curiosity</td><td>Knowing how their club actually works</td><td>Yes &mdash; one hour of reading</td></tr>
+    <tr><td>Warmth</td><td>Someone you'd want in the room at 11pm</td><td>Just be a person</td></tr>
+    <tr><td>Concision</td><td>Recommendation in two sentences</td><td>Yes &mdash; practise endings</td></tr>
+  </table></div>
+
+  <div class="callout">
+    <span class="lab">The one that surprises people</span>
+    <p><strong>Coachability.</strong> When an interviewer pushes back, weak candidates defend their answer. Strong ones say "that's a fair point, let me reconsider" &mdash; and then genuinely change course. They're simulating a real project where a partner will tear up your work in week six. <strong>Show you can take it without deflating.</strong></p>
+  </div>
+
+  <div class="console">
+    <p class="ctitle">CASE CLOCK &mdash; WHERE SHOULD YOU BE?</p>
+    <div class="ctrl">
+      <label for="clk">Minutes elapsed</label>
+      <input type="range" id="clk" min="0" max="20" step="1" value="0">
+      <span class="val" id="clkv">0 min</span>
+    </div>
+    <div class="readout">
+      <div class="rd"><div class="k">Stage</div><div class="v" id="stg">CLARIFY</div></div>
+      <div class="rd"><div class="k">You should be</div><div class="v" id="act" style="font-size:11px">ASKING SCOPE QUESTIONS</div></div>
+      <div class="rd"><div class="k">Status</div><div class="v" id="sta">ON TRACK</div></div>
+    </div>
+    <div class="verdict" id="clkmsg">Drag the slider to see where a well-run 20-minute case should be at each point.</div>
+  </div>
+
+  <div class="checkpoint">
+    <span class="lab">DAY 0 COMPLETE &mdash; BEFORE YOU MOVE ON</span>
+    <ul>
+      <li>Say the four stages and their timing, out loud, from memory</li>
+      <li>Draw the profitability tree three levels deep on blank paper</li>
+      <li>Write six clarifying questions for any prompt &mdash; and check none are hypotheses</li>
+      <li>Present a structure for one prompt out loud, recorded, without naming a framework</li>
+      <li>Size one market end to end, narrating every assumption</li>
+    </ul>
+  </div>
+
+  <p style="text-align:right;margin-top:26px"><a href="#map" style="font-family:var(--hud);font-size:19px;color:var(--cyan);letter-spacing:1px;text-decoration:none">&larr; BACK TO MAP</a></p>
+</section>
+
+
+<svg class="strandline" viewBox="0 0 1200 26" preserveAspectRatio="none" aria-hidden="true"><path d="M0 13 L1200 13"/><path d="M240 13 L280 3 M280 23 L320 13 M880 13 L920 3 M920 23 L960 13"/><circle cx="300" cy="13" r="4"/><circle cx="900" cy="13" r="4"/></svg>
+<footer>
+  <p class="f1">DAY 0 COMPLETE</p>
+  <p class="f2">Next: Day 1 &mdash; the economics behind every case.<br>Then Day 2 &mdash; frameworks and case maths.</p>
+  <a class="totop" href="#map">&uarr; BACK TO MAP</a>
+</footer>
+
+<div id="w2wsDone" data-day="d0"></div>
+
+</div>
+
+<script>
+var DRILL = [["Is the 20% fall in profit, or in revenue?", 1], ["Could a new competitor have opened nearby?", 0], ["Is this across all outlets or just some regions?", 1], ["Have their ingredient costs gone up?", 0], ["When you say last year, is that the financial year?", 1], ["Do they sell dine-in, delivery, or both?", 1], ["Is delivery cannibalising their dine-in business?", 0], ["Is there a target profit level they're aiming for?", 1], ["Might customers be shifting to healthier food?", 0], ["Has this been gradual or did it drop suddenly?", 1]];
+(function(){
+  var wrap = document.getElementById('drill');
+  if(!wrap) return;
+  var done = 0, right = 0;
+  DRILL.forEach(function(q, i){
+    var row = document.createElement('div');
+    row.className = 'drow';
+    row.innerHTML = '<span class="dq">' + q[0] + '</span>' +
+      '<span class="dbtns"><button type="button" data-a="1">CLARIFIER</button>' +
+      '<button type="button" data-a="0">HYPOTHESIS</button></span>';
+    row.querySelectorAll('button').forEach(function(b){
+      b.addEventListener('click', function(){
+        if(row.classList.contains('answered')) return;
+        row.classList.add('answered');
+        var ok = (+b.dataset.a === q[1]);
+        b.classList.add(ok ? 'ok' : 'no');
+        if(!ok){
+          row.querySelector('[data-a="' + q[1] + '"]').classList.add('ok');
+        }
+        done++; if(ok) right++;
+        var el = document.getElementById('drillScore');
+        el.textContent = 'Score: ' + right + ' / ' + done +
+          (done === DRILL.length ? (right === DRILL.length
+            ? '  \u2014 all correct. You can tell them apart.'
+            : '  \u2014 revisit the ones you missed: does it narrow the search, or propose a cause?') : '');
+      });
+    });
+    wrap.appendChild(row);
+  });
+})();
+
+(function(){
+  var s = document.getElementById('clk');
+  if(!s) return;
+  var STAGES = [
+    [0, 3,  'CLARIFY',   'ASKING SCOPE QUESTIONS',  'Two to four questions, front-loaded. Objective, client, the number itself.'],
+    [3, 6,  'STRUCTURE', 'PRESENTING YOUR PLAN',    'Thirty seconds of silence, then say the arc out loud. Never name a framework.'],
+    [6, 17, 'ANALYSE',   'WALKING THE BRANCHES',    'Ask for data, narrate the maths, close each branch with a one-line verdict.'],
+    [17,21, 'CONCLUDE',  'LANDING THE ANSWER',      'Recommendation first, two or three reasons, then a risk or next step.']
+  ];
+  function upd(){
+    var m = +s.value, cur = STAGES[3];
+    for(var i=0;i<STAGES.length;i++){ if(m >= STAGES[i][0] && m < STAGES[i][1]){ cur = STAGES[i]; break; } }
+    document.getElementById('clkv').textContent = m + ' min';
+    document.getElementById('stg').textContent = cur[2];
+    document.getElementById('act').textContent = cur[3];
+    document.getElementById('clkmsg').textContent = cur[4];
+    var st = document.getElementById('sta');
+    if(m >= 18){ st.textContent = 'FINISH NOW'; st.className = 'v bad'; }
+    else if(m >= 15){ st.textContent = 'WRAP UP'; st.className = 'v warn'; }
+    else { st.textContent = 'ON TRACK'; st.className = 'v'; }
+  }
+  s.addEventListener('input', upd); upd();
+})();
+</script>
+
+<script src="assets/js/curriculum.js"></script>
+<script src="assets/js/progress.js"></script>
+<script src="assets/js/dayhook.js"></script>
+</body>
+</html>
